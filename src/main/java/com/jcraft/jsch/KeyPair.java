@@ -991,7 +991,7 @@ public abstract class KeyPair{
     int lines = 0;
 
     Buffer buffer = new Buffer(buf);
-    java.util.Hashtable v = new java.util.Hashtable();
+    java.util.Hashtable<String,String> v = new java.util.Hashtable<String,String>();
 
     while(true){
       if(!parseHeader(buffer, v))
@@ -1126,7 +1126,7 @@ public abstract class KeyPair{
     return data;
   }
 
-  private static boolean parseHeader(Buffer buffer, java.util.Hashtable v){
+  private static boolean parseHeader(Buffer buffer, java.util.Hashtable<String,String> v){
     byte[] buf = buffer.buffer;
     int index = buffer.index;
     String key = null;
@@ -1237,7 +1237,7 @@ public abstract class KeyPair{
         return new ASN1[0];
       }
       int index=indexp[0];
-      java.util.Vector values = new java.util.Vector();
+      java.util.Vector<ASN1> values = new java.util.Vector<ASN1>();
       while(length>0) {
         index++; length--;
         int tmp=index;
