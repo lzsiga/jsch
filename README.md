@@ -1,5 +1,5 @@
 # jsch
-Fork of ymnk's jsch-0.1.55 from sourceforge.net
+Fork of Atsuhiko Yamanaka (ymnk)'s jsch-0.1.55 from sourceforge.net
 
 To tell the truth, I don't know anything about Java. Or git/github.
 I only wish to publish a little fix I've created.
