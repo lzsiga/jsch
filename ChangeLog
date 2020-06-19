@@ -1,7 +1,11 @@
 ChangeLog of JSch
 ====================================================================
-Last modified: Thu Nov 22 01:06:27 UTC 2018
+Last modified: Fri Jun 19 14:58:39 UTC 2020
 
+Changes since version 0.1.55:
+- README.md: new file
+- Makefile:  new file
+- KeyPair.java: support for LF-only line-ends in PPK files
 
 Changes since version 0.1.54:
 - bugfix: fixed vulnerabilities in examples;
