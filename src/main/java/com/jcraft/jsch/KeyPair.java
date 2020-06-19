@@ -996,7 +996,7 @@ public abstract class KeyPair{
     while(true){
       if(!parseHeader(buffer, v))
         break;
-    } 
+    }
 
     String typ = (String)v.get("PuTTY-User-Key-File-2");
     if(typ == null){
@@ -1004,7 +1004,7 @@ public abstract class KeyPair{
     }
 
     lines = Integer.parseInt((String)v.get("Public-Lines"));
-    pubkey = parseLines(buffer, lines); 
+    pubkey = parseLines(buffer, lines);
 
     while(true){
       if(!parseHeader(buffer, v))
@@ -1097,7 +1097,8 @@ public abstract class KeyPair{
     int i = index;
     while(lines-->0){
       while(buf.length > i){
-        if(buf[i++] == 0x0d){
+        if(buf[i] == 0x0d || buf[i] == 0x0a){
+          i++;
           if(data == null){
             data = new byte[i - index - 1];
             System.arraycopy(buf, index, data, 0, i - index - 1);
@@ -1108,11 +1109,13 @@ public abstract class KeyPair{
             System.arraycopy(buf, index, tmp, data.length, i - index -1);
             for(int j = 0; j < data.length; j++) data[j] = 0; // clear
             data = tmp;
-          } 
+          }
           break;
         }
+        i++;
       }
-      if(buf[i]==0x0a)
+      if(buf.length > i && ((buf[i-1]==0x0d && buf[i]==0x0a) ||
+                            (buf[i-1]==0x0a && buf[i]==0x0d)))
         i++;
       index=i;
     }
@@ -1129,7 +1132,7 @@ public abstract class KeyPair{
     String key = null;
     String value = null;
     for(int i = index; i < buf.length; i++){
-      if(buf[i] == 0x0d){
+      if(buf[i] == 0x0d || buf[i] == 0x0a){
         break;
       }
       if(buf[i] == ':'){
@@ -1147,10 +1150,11 @@ public abstract class KeyPair{
       return false;
 
     for(int i = index; i < buf.length; i++){
-      if(buf[i] == 0x0d){
+      if(buf[i] == 0x0d || buf[i] == 0x0a){
         value = new String(buf, index, i - index);
         i++;
-        if(i < buf.length && buf[i] == 0x0a){
+        if(i < buf.length && ((buf[i-1] == 0x0a && buf[i] == 0x0d) ||
+                              (buf[i-1] == 0x0d && buf[i] == 0x0a))){
           i++;
         }
         index = i;
