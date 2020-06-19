@@ -14,5 +14,8 @@ Dependency: jcraft's jzlib (latest version is 1.1.3)
 - http://www.jcraft.com/jzlib/
 - https://github.com/ymnk/jzlib/releases
 
+Original:
+- https://sourceforge.net/projects/jsch/
+
 Other fork(s):
 - https://github.com/mwiede/jsch
