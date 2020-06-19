@@ -36,9 +36,9 @@ public class JSch{
   /**
    * The version number.
    */
-  public static final String VERSION  = "0.1.54";
+  public static final String VERSION  = "0.1.55a";
 
-  static java.util.Hashtable config=new java.util.Hashtable();
+  static java.util.Hashtable<String,String> config=new java.util.Hashtable<String,String>();
   static{
     config.put("kex", "ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256,diffie-hellman-group-exchange-sha1,diffie-hellman-group1-sha1");
     config.put("server_host_key", "ssh-rsa,ssh-dss,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521");
@@ -138,7 +138,7 @@ public class JSch{
     config.put("ClearAllForwardings", "no");
   }
 
-  private java.util.Vector sessionPool = new java.util.Vector();
+  private java.util.Vector<Session> sessionPool = new java.util.Vector<Session>();
 
   private IdentityRepository defaultIdentityRepository =
     new LocalIdentityRepository(this);
@@ -486,7 +486,7 @@ public class JSch{
    * @deprecated use #removeIdentity(Identity identity)
    */
   public void removeIdentity(String name) throws JSchException{
-    Vector identities = identityRepository.getIdentities();
+    Vector<Identity> identities = identityRepository.getIdentities();
     for(int i=0; i<identities.size(); i++){
       Identity identity=(Identity)(identities.elementAt(i));
       if(!identity.getName().equals(name))
@@ -517,9 +517,9 @@ public class JSch{
    *
    * @throws JSchException if identityReposory has problems.
    */
-  public Vector getIdentityNames() throws JSchException{
-    Vector foo=new Vector();
-    Vector identities = identityRepository.getIdentities();
+  public Vector<String> getIdentityNames() throws JSchException{
+    Vector<String> foo=new Vector<String>();
+    Vector<Identity> identities = identityRepository.getIdentities();
     for(int i=0; i<identities.size(); i++){
       Identity identity=(Identity)(identities.elementAt(i));
       foo.addElement(identity.getName());

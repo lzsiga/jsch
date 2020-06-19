@@ -126,7 +126,7 @@ public class Session implements Runnable{
                                    64 + // maximum mac length
                                    32;  // margin for deflater; deflater may inflate data
 
-  private java.util.Hashtable config=null;
+  private java.util.Hashtable<String,String> config=null;
 
   private Proxy proxy=null;
   private UserInfo userinfo;
@@ -2036,7 +2036,7 @@ break;
   private Forwarding parseForwarding(String conf) throws JSchException {
     String[] tmp = conf.split(" ");
     if(tmp.length>1){   // "[bind_address:]port host:hostport"
-      Vector foo = new Vector();
+      Vector<String> foo = new Vector<String>();
       for(int i=0; i<tmp.length; i++){
         if(tmp[i].length()==0) continue;
         foo.addElement(tmp[i].trim());
@@ -2296,16 +2296,25 @@ break;
   }
 
   public void setConfig(java.util.Properties newconf){
-    setConfig((java.util.Hashtable)newconf);
-  }
- 
-  public void setConfig(java.util.Hashtable newconf){
     synchronized(lock){
-      if(config==null) 
-        config=new java.util.Hashtable();
-      for(java.util.Enumeration e=newconf.keys() ; e.hasMoreElements() ;) {
-        String key=(String)(e.nextElement());
-        config.put(key, (String)(newconf.get(key)));
+      if(config==null)
+        config=new java.util.Hashtable<String,String>();
+      java.util.Set<String> keys=newconf.stringPropertyNames();
+      for(String key: keys){
+        Object p= newconf.getProperty(key);
+        config.put(key, p==null? null: p.toString());
+      }
+    }
+  }
+
+  public void setConfig(java.util.Hashtable<String,String> newconf){
+    synchronized(lock){
+      if(config==null)
+        config=new java.util.Hashtable<String,String>();
+      java.util.Set<String> keys=newconf.keySet();
+      for(String key: keys){
+        Object v= newconf.get(key);
+        config.put(key, v==null? null: v.toString());
       }
     }
   }
@@ -2313,7 +2322,7 @@ break;
   public void setConfig(String key, String value){
     synchronized(lock){ 
       if(config==null){
-        config=new java.util.Hashtable();
+        config=new java.util.Hashtable<String,String>();
       }
       config.put(key, value);
     }
@@ -2465,7 +2474,7 @@ break;
     String cipherc2s=getConfig("cipher.c2s");
     String ciphers2c=getConfig("cipher.s2c");
 
-    Vector result=new Vector();
+    Vector<String> result=new Vector<String>();
     String[] _ciphers=Util.split(ciphers, ",");
     for(int i=0; i<_ciphers.length; i++){
       String cipher=_ciphers[i];
@@ -2513,7 +2522,7 @@ break;
                            "CheckKexes: "+kexes);
     }
 
-    java.util.Vector result=new java.util.Vector();
+    java.util.Vector<String> result=new java.util.Vector<String>();
     String[] _kexes=Util.split(kexes, ",");
     for(int i=0; i<_kexes.length; i++){
       if(!checkKex(this, getConfig(_kexes[i]))){
@@ -2554,10 +2563,10 @@ break;
                            "CheckSignatures: "+sigs);
     }
 
-    java.util.Vector result=new java.util.Vector();
+    java.util.Vector<String> result=new java.util.Vector<String>();
     String[] _sigs=Util.split(sigs, ",");
     for(int i=0; i<_sigs.length; i++){
-      try{      
+      try{
         Class c=Class.forName((String)jsch.getConfig(_sigs[i]));
         final Signature sig=(Signature)(c.newInstance());
         sig.init();
