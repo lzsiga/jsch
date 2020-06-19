@@ -8,9 +8,11 @@ Licence: BSD
 
 Java version: 1.5 or newer
 
-Dependency: jcraft's jzlib (latest version is 1.1.3)
-  http://www.jcraft.com/jzlib/
-  https://github.com/ymnk/jzlib/releases
+Versioning: I thing I'll start with **0.1.55a**, not to interfere with other forks
 
-Other fork:
-  https://github.com/mwiede/jsch
+Dependency: jcraft's jzlib (latest version is 1.1.3)
+- http://www.jcraft.com/jzlib/
+- https://github.com/ymnk/jzlib/releases
+
+Other fork(s):
+- https://github.com/mwiede/jsch
