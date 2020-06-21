@@ -9,6 +9,8 @@ JSch.java:
 +  static java.util.Hashtable<java.lang.String, java.lang.String> config;
 -  public java.util.Vector getIdentityNames() throws com.jcraft.jsch.JSchException;
 +  public java.util.Vector<java.lang.String> getIdentityNames() throws com.jcraft.jsch.JSchException;
+-  public static void setConfig(java.util.Hashtable);
++  public static void setConfig(java.util.Hashtable<java.lang.String, java.lang.String>);
 
 Session.java:
 -  public void setConfig(java.util.Hashtable);

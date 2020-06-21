@@ -553,11 +553,10 @@ public class JSch{
    *
    * @param newconf configurations
    */
-  public static void setConfig(java.util.Hashtable newconf){
+  public static void setConfig(java.util.Hashtable<String,String> newconf){
     synchronized(config){
-      for(java.util.Enumeration e=newconf.keys() ; e.hasMoreElements() ;) {
-	String key=(String)(e.nextElement());
-	config.put(key, (String)(newconf.get(key)));
+      for(java.util.Map.Entry<String,String> entry: newconf.entrySet()) {
+        config.put(entry.getKey(), entry.getValue());
       }
     }
   }
