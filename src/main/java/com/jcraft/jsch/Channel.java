@@ -48,7 +48,7 @@ public abstract class Channel implements Runnable{
   static final int SSH_OPEN_RESOURCE_SHORTAGE=              4;
 
   static int index=0; 
-  private static java.util.Vector pool=new java.util.Vector();
+  private static java.util.Vector<Channel> pool=new java.util.Vector<Channel>();
   static Channel getChannel(String type){
     if(type.equals("session")){
       return new ChannelSession();
