@@ -1,0 +1,15 @@
+Changes in public interface caused by Java 1.5 generics (jdeps)
+
+IdentityRepository.javap:
+-  public abstract java.util.Vector getIdentities();
++  public abstract java.util.Vector<com.jcraft.jsch.Identity> getIdentities();
+
+JSch.java:
+-  static java.util.Hashtable config;
++  static java.util.Hashtable<java.lang.String, java.lang.String> config;
+-  public java.util.Vector getIdentityNames() throws com.jcraft.jsch.JSchException;
++  public java.util.Vector<java.lang.String> getIdentityNames() throws com.jcraft.jsch.JSchException;
+
+Session.java:
+-  public void setConfig(java.util.Hashtable);
++  public void setConfig(java.util.Hashtable<java.lang.String, java.lang.String>);
