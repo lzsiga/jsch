@@ -5,7 +5,7 @@
 SHELL  := /usr/local/bin/bash
 PATH   := /usr/local/bin:/opt/bin:${PATH}
 JAR    := jar
-JAVAC  := javac8
+JAVAC  := javac5
 JLIB   := /opt/lib/java
 CP     := ${JLIB}/jzlib.jar
 MINVER := 1.5
