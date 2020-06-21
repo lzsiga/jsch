@@ -2299,10 +2299,13 @@ break;
     synchronized(lock){
       if(config==null)
         config=new java.util.Hashtable<String,String>();
-      java.util.Set<String> keys=newconf.stringPropertyNames();
-      for(String key: keys){
-        Object p= newconf.getProperty(key);
-        config.put(key, p==null? null: p.toString());
+      for (java.util.Map.Entry<Object,Object> e: newconf.entrySet()) {
+        Object k=e.getKey();
+        Object v=e.getValue();
+        if (k!=null && k instanceof String &&
+            v!=null && v instanceof String) {
+          config.put((String)k, (String)v);
+        }
       }
     }
   }
@@ -2311,10 +2314,8 @@ break;
     synchronized(lock){
       if(config==null)
         config=new java.util.Hashtable<String,String>();
-      java.util.Set<String> keys=newconf.keySet();
-      for(String key: keys){
-        Object v= newconf.get(key);
-        config.put(key, v==null? null: v.toString());
+      for (java.util.Map.Entry<String,String> e: newconf.entrySet()) {
+        config.put(e.getKey(), e.getValue());
       }
     }
   }
