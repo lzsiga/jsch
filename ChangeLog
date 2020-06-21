@@ -6,7 +6,8 @@ Changes since version 0.1.55:
 - README.md: new file
 - Makefile:  new file
 - KeyPair.java: support for LF-only line-ends in PPK files
-- KeyPair.java. fix Java1.5 warnings
+- Multiple *.java files: fix Java1.5 warnings (generics)
+- doc: new directory
 
 Changes since version 0.1.54:
 - bugfix: fixed vulnerabilities in examples;
