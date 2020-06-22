@@ -1,5 +1,11 @@
 Changes in public interface caused by Java 1.5 generics (jdeps)
 
+ChannelSession.java
+-  protected java.util.Hashtable env;
++  protected java.util.Hashtable<byte[], byte[]> env;
+-  public void setEnv(java.util.Hashtable);
++  public void setEnv(java.util.Hashtable<byte[], byte[]>);
+
 IdentityRepository.javap:
 -  public abstract java.util.Vector getIdentities();
 +  public abstract java.util.Vector<com.jcraft.jsch.Identity> getIdentities();
