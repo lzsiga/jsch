@@ -1,0 +1,18 @@
+Conversion between 'byte[]' and 'String'
+
+  Is performed by Util.str2byte and Util.byte2str methods:
+
+    static byte[] str2byte(String str, String encoding)
+    static byte[] str2byte(String str)
+
+    static String byte2str(byte[] str, String encoding)
+    static String byte2str(byte[] str, int s, int l, String encoding)
+    static String byte2str(byte[] str)
+    static String byte2str(byte[] str, int s, int l)
+
+    When there's no 'encoding' parameter, UTF-8 is used (and if that fails, the default encoding)
+
+  Example for such conversion:
+    'ChannelSession' has an 'env' member of type 'Hashtable<byte[],byte[]>'
+     When you store (key,value) pair with 'setEnv(String,String)', 'str2byte' is used
+     When using 'setEnv(byte[],byte[])' there is no converion.
