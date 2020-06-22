@@ -36,7 +36,7 @@ class ChannelSession extends Channel{
 
   protected boolean agent_forwarding=false;
   protected boolean xforwading=false;
-  protected Hashtable env=null;
+  protected Hashtable<byte[],byte[]> env=null;
 
   protected boolean pty=false;
 
@@ -77,9 +77,9 @@ class ChannelSession extends Channel{
    * @see #setEnv(String, String)
    * @see #setEnv(byte[], byte[])
    */
-  public void setEnv(Hashtable env){ 
+  public void setEnv(Hashtable<byte[],byte[]> env){
     synchronized(this){
-      this.env=env; 
+      this.env= env;
     }
   }
 
@@ -111,9 +111,9 @@ class ChannelSession extends Channel{
     }
   }
 
-  private Hashtable getEnv(){
+  private Hashtable<byte[],byte[]> getEnv(){
     if(env==null)
-      env=new Hashtable();
+      env=new Hashtable<byte[],byte[]>();
     return env;
   }
 
