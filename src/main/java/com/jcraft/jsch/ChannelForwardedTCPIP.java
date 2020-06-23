@@ -35,7 +35,7 @@ import java.util.Vector;
 
 public class ChannelForwardedTCPIP extends Channel{
 
-  private static Vector pool = new Vector();
+  private static Vector<Config> pool = new Vector<Config>();
 
   static private final int LOCAL_WINDOW_SIZE_MAX=0x20000;
 //static private final int LOCAL_WINDOW_SIZE_MAX=0x100000;
@@ -182,7 +182,7 @@ public class ChannelForwardedTCPIP extends Channel{
   }
 
   static String[] getPortForwarding(Session session){
-    Vector foo = new Vector();
+    Vector<String> foo = new Vector<String>();
     synchronized(pool){
       for(int i=0; i<pool.size(); i++){
         Config config = (Config)(pool.elementAt(i));
