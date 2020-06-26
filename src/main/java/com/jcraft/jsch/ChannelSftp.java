@@ -146,7 +146,7 @@ public class ChannelSftp extends ChannelSession{
   private int server_version=3;
   private String version=String.valueOf(client_version);
 
-  private java.util.Hashtable extensions=null;
+  private java.util.Hashtable<String,String> extensions=null;
   private InputStream io_in=null;
 
   private boolean extension_posix_rename = false;
@@ -268,7 +268,7 @@ public class ChannelSftp extends ChannelSession{
       type=header.type;             // 2 -> SSH_FXP_VERSION
       server_version=header.rid;
       //System.err.println("SFTP protocol server-version="+server_version);
-      extensions=new java.util.Hashtable();
+      extensions=new java.util.Hashtable<String,String>();
       if(length>0){
         // extension data
         fill(buf, length);
@@ -1543,7 +1543,7 @@ public class ChannelSftp extends ChannelSession{
    }
 
    public java.util.Vector ls(String path) throws SftpException{
-     final java.util.Vector v = new Vector();
+     final java.util.Vector<LsEntry> v = new Vector<LsEntry>();
      LsEntrySelector selector = new LsEntrySelector(){
        public int select(LsEntry entry){
          v.addElement(entry);
@@ -2675,8 +2675,8 @@ public class ChannelSftp extends ChannelSession{
     putHEAD(buf, type, length);
   }
 
-  private Vector glob_remote(String _path) throws Exception{
-    Vector v=new Vector();
+  private Vector<String> glob_remote(String _path) throws Exception{
+    Vector<String> v=new Vector<String>();
     int i=0;
 
     int foo=_path.lastIndexOf('/');
@@ -2805,9 +2805,9 @@ public class ChannelSftp extends ChannelSession{
     return false;
   }
 
-  private Vector glob_local(String _path) throws Exception{
+  private Vector<String> glob_local(String _path) throws Exception{
 //System.err.println("glob_local: "+_path);
-    Vector v=new Vector();
+    Vector<String> v=new Vector<String>();
     byte[] path=Util.str2byte(_path, UTF8);
     int i=path.length-1;
     while(i>=0){
