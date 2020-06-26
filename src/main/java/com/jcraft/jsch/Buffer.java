@@ -32,8 +32,9 @@ package com.jcraft.jsch;
 public class Buffer{
   final byte[] tmp=new byte[4];
   byte[] buffer;
-  int index;
-  int s;
+  int index;	// LZS: it should be 'wrpos'
+  int s;	// LZS: it should be 'rdpos'
+
   public Buffer(int size){
     buffer=new byte[size];
     index=0;
