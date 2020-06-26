@@ -37,7 +37,7 @@ class KnownHosts implements HostKeyRepository{
 
   private JSch jsch=null;
   private String known_hosts=null;
-  private java.util.Vector pool=null;
+  private java.util.Vector<HostKey> pool=null;
 
   private MAC hmacsha1=null;
 
@@ -355,7 +355,7 @@ loop:
   }
   public HostKey[] getHostKey(String host, String type){
     synchronized(pool){
-      java.util.ArrayList v = new java.util.ArrayList();
+      java.util.ArrayList<HostKey> v = new java.util.ArrayList<HostKey>();
       for(int i=0; i<pool.size(); i++){
 	HostKey hk=(HostKey)pool.elementAt(i);
 	if(hk.type==HostKey.UNKNOWN) continue;
