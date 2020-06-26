@@ -45,7 +45,7 @@ class KnownHosts implements HostKeyRepository{
     super();
     this.jsch=jsch;
     this.hmacsha1 = getHMACSHA1();
-    pool=new java.util.Vector();
+    pool=new java.util.Vector<HostKey>();
   }
 
   void setKnownHosts(String filename) throws JSchException{
