@@ -12,6 +12,9 @@ Conversion between 'byte[]' and 'String'
 
     When there's no 'encoding' parameter, UTF-8 is used (and if that fails, the default encoding)
 
+    In version 0.1.55a these methods became 'public': they might be useful as they are easier
+    to use than 'new String' and 'String.getBytes': they handle null value, and don't throw exceptions
+
   Example for such conversion:
     'ChannelSession' has an 'env' member of type 'Hashtable<byte[],byte[]>'
      When you store (key,value) pair with 'setEnv(String,String)', 'str2byte' is used

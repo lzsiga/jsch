@@ -61,8 +61,7 @@ class ChangePassphrase{
       }
       passphrase=passphraseField.getText();
 
-      kpair.setPassphrase(passphrase);
-      kpair.writePrivateKey(pkey);
+      kpair.writePrivateKey(pkey,Util.str2byte(passphrase, "UTF-8"));
       kpair.dispose();
     }
     catch(Exception e){
