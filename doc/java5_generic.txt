@@ -18,6 +18,10 @@ JSch.java:
 -  public static void setConfig(java.util.Hashtable);
 +  public static void setConfig(java.util.Hashtable<java.lang.String, java.lang.String>);
 
+LocalIdentityRepository.java:
+-  public synchronized java.util.Vector getIdentities();
++  public synchronized java.util.Vector<com.jcraft.jsch.Identity> getIdentities();
+
 Session.java:
 -  public void setConfig(java.util.Hashtable);
 +  public void setConfig(java.util.Hashtable<java.lang.String, java.lang.String>);
