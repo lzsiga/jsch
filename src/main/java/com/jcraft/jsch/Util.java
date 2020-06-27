@@ -110,7 +110,7 @@ class Util{
     if(foo==null)
       return null;
     byte[] buf=Util.str2byte(foo);
-    java.util.Vector bar=new java.util.Vector();
+    java.util.Vector<String> bar=new java.util.Vector<String>();
     int start=0;
     int index;
     while(true){
