@@ -33,7 +33,7 @@ public class Buffer{
   final byte[] tmp=new byte[4];
   byte[] buffer;
   int index;	// LZS: it should be 'wrpos'
-  int s;	// LZS: it should be 'rdpos'
+  int s;	// LZS: it should be 'rdpos'; methods 'reset', 'rewind', 'shift' set it to 0
 
   public Buffer(int size){
     buffer=new byte[size];
@@ -149,10 +149,16 @@ public class Buffer{
     System.arraycopy(buffer, s, foo, start, len); 
     s+=len;
   }
-  public int getByte(int len) {
-    int foo=s;
+  /**
+   * Increment 's' (the read-position) with the specified 'len' bytes.
+   * Expect troubles if len<0 or s+len>index or s+len>buffer.length
+   * @param len non-negative number of bytes to seek
+   * @return the original 's' (the read-position)
+   */
+  public int seekRdPos(int len) {
+    int sOrig=s;
     s+=len;
-    return foo;
+    return sOrig;
   }
   public byte[] getMPInt() {
     int i=getInt();  // uint32
@@ -191,7 +197,7 @@ public class Buffer{
   }
   byte[] getString(int[]start, int[]len) {
     int i=getInt();
-    start[0]=getByte(i);
+    start[0]=seekRdPos(i);
     len[0]=i;
     return buffer;
   }
@@ -199,6 +205,10 @@ public class Buffer{
     index=0;
     s=0;
   }
+
+  /**
+   * This method compresses the buffer, copying the data between 's' and into 'index' to the beginning.
+   */
   public void shift(){
     if(s==0)return;
     System.arraycopy(buffer, s, buffer, 0, index-s);
