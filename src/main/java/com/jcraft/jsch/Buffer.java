@@ -33,7 +33,12 @@ public class Buffer{
   final byte[] tmp=new byte[4];
   byte[] buffer;
   int index;	// LZS: it should be 'wrpos'
-  int s;	// LZS: it should be 'rdpos'; methods 'reset', 'rewind', 'shift' set it to 0
+		// constructors and method 'reset' set it to 0
+		// methods 'putXXX' and 'skip' increment it
+		// method 'shift' decrements it (if s>0)
+  int s;	// LZS: it should be 'rdpos'
+		// constructors and methods 'reset', 'rewind', 'shift' set it to 0
+		// methods 'getXXX' and 'seekRdPos' increment it
 
   public Buffer(int size){
     buffer=new byte[size];
@@ -219,6 +224,10 @@ public class Buffer{
     s=0;
   }
 
+  /**
+   * This method is a bit WTF-ish: you have to know what this 5 is,
+   * also it doesn't verify that <code>s==0 && index>=6</code>
+   */
   byte getCommand(){
     return buffer[5];
   }
