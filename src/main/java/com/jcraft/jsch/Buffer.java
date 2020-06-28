@@ -313,5 +313,19 @@ public class Buffer{
     System.err.println("");
   }
 */
+  public String toString() {
+    String sret= String.format ("%s:buffer.length=%d"+
+        ",s(rdpos)=%d,index(wrpos)=%d",
+        super.toString(),
+        buffer.length, s, index);
+    if (s<0 || index<s || index>buffer.length) {
+        sret += ",Inconsistent!";
+    } else if (index==0) {
+        sret += ",Empty";
+    } else if (index==buffer.length) {
+        sret += ",Full";
+    }
 
+    return sret;
+  }
 }
