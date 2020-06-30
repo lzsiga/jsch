@@ -50,6 +50,11 @@ public class Buffer{
     index=0;
     s=0;
   }
+  public Buffer(byte[] buffer, boolean fSkip){
+    this.buffer=buffer;
+    index=fSkip? this.buffer.length: 0;
+    s=0;
+  }
   public Buffer(){ this(1024*10*2); }
   public void putByte(byte foo){
     buffer[index++]=foo;
@@ -321,7 +326,7 @@ public class Buffer{
     if (s<0 || index<s || index>buffer.length) {
         sret += ",Inconsistent!";
     } else if (index==0) {
-        sret += ",Empty";
+        sret += ",Empty?";
     } else if (index==buffer.length) {
         sret += ",Full";
     }
