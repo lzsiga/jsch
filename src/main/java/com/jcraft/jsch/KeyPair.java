@@ -597,8 +597,7 @@ public abstract class KeyPair{
         prvkey[0]==0 && prvkey[1]==0 && prvkey[2]==0 &&
         (prvkey[3]==7 || prvkey[3]==19))){
 
-      Buffer buf=new Buffer(prvkey);
-      buf.skip(prvkey.length);  // for using Buffer#available()
+      Buffer buf=new Buffer(prvkey, true);
       String _type = new String(buf.getString()); // ssh-rsa or ssh-dss
       buf.rewind();
 
@@ -609,9 +608,9 @@ public abstract class KeyPair{
       else if(_type.equals("ssh-dss")){
         kpair=KeyPairDSA.fromSSHAgent(jsch, buf);
       }
-      else if(_type.equals("ecdsa-sha2-nistp256") ||
-              _type.equals("ecdsa-sha2-nistp384") ||
-              _type.equals("ecdsa-sha2-nistp521")){
+      else if(_type.equals(ECDSA_TYPES[0]) ||
+              _type.equals(ECDSA_TYPES[1]) ||
+              _type.equals(ECDSA_TYPES[2])){
         kpair=KeyPairECDSA.fromSSHAgent(jsch, buf);
       }
       else{
@@ -997,6 +996,12 @@ public abstract class KeyPair{
     "Private-MAC: "
   };
 
+  private static final String[] ECDSA_TYPES= {
+    "ecdsa-sha2-nistp256",
+    "ecdsa-sha2-nistp384",
+    "ecdsa-sha2-nistp521"
+  };
+
   static KeyPair loadPPK(JSch jsch, byte[] buf) throws JSchException {
     byte[] pubkey = null;
     byte[] prvkey = null;
@@ -1067,6 +1072,13 @@ public abstract class KeyPair{
       _buf.getByte(y_array);
 
       kpair = new KeyPairDSA(jsch, p_array, q_array, g_array, y_array, null);
+    }
+    else if(typ.equals(ECDSA_TYPES[0]) ||
+            typ.equals(ECDSA_TYPES[1]) ||
+            typ.equals(ECDSA_TYPES[2])){
+      Buffer bufPrvkey=new Buffer(prvkey, true);
+      kpair=KeyPairECDSA.fromSSHAgent(jsch, bufPrvkey);
+      return kpair;
     }
     else {
       return null;
