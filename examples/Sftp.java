@@ -48,7 +48,7 @@ public class Sftp{
       java.io.InputStream in=System.in;
       java.io.PrintStream out=System.out;
 
-      java.util.Vector cmds=new java.util.Vector();
+      java.util.Vector<String> cmds=new java.util.Vector<String>();
       byte[] buf=new byte[1024];
       int i;
       String str;

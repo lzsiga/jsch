@@ -33,7 +33,12 @@ public class Buffer{
   final byte[] tmp=new byte[4];
   byte[] buffer;
   int index;	// LZS: it should be 'wrpos'
+		// constructors and method 'reset' set it to 0
+		// methods 'putXXX' and 'skip' increment it
+		// method 'shift' decrements it (if s>0)
   int s;	// LZS: it should be 'rdpos'
+		// constructors and methods 'reset', 'rewind', 'shift' set it to 0
+		// methods 'getXXX' and 'seekRdPos' increment it
 
   public Buffer(int size){
     buffer=new byte[size];
@@ -43,6 +48,11 @@ public class Buffer{
   public Buffer(byte[] buffer){
     this.buffer=buffer;
     index=0;
+    s=0;
+  }
+  public Buffer(byte[] buffer, boolean fSkip){
+    this.buffer=buffer;
+    index=fSkip? this.buffer.length: 0;
     s=0;
   }
   public Buffer(){ this(1024*10*2); }
@@ -149,10 +159,16 @@ public class Buffer{
     System.arraycopy(buffer, s, foo, start, len); 
     s+=len;
   }
-  public int getByte(int len) {
-    int foo=s;
+  /**
+   * Increment 's' (the read-position) with the specified 'len' bytes.
+   * Expect troubles if len<0 or s+len>index or s+len>buffer.length
+   * @param len non-negative number of bytes to seek
+   * @return the original 's' (the read-position)
+   */
+  public int seekRdPos(int len) {
+    int sOrig=s;
     s+=len;
-    return foo;
+    return sOrig;
   }
   public byte[] getMPInt() {
     int i=getInt();  // uint32
@@ -191,7 +207,7 @@ public class Buffer{
   }
   byte[] getString(int[]start, int[]len) {
     int i=getInt();
-    start[0]=getByte(i);
+    start[0]=seekRdPos(i);
     len[0]=i;
     return buffer;
   }
@@ -199,6 +215,10 @@ public class Buffer{
     index=0;
     s=0;
   }
+
+  /**
+   * This method compresses the buffer, copying the data between 's' and into 'index' to the beginning.
+   */
   public void shift(){
     if(s==0)return;
     System.arraycopy(buffer, s, buffer, 0, index-s);
@@ -209,6 +229,10 @@ public class Buffer{
     s=0;
   }
 
+  /**
+   * This method is a bit WTF-ish: you have to know what this 5 is,
+   * also it doesn't verify that <code>s==0 && index>=6</code>
+   */
   byte getCommand(){
     return buffer[5];
   }
@@ -294,5 +318,19 @@ public class Buffer{
     System.err.println("");
   }
 */
+  public String toString() {
+    String sret= String.format ("%s:buffer.length=%d"+
+        ",s(rdpos)=%d,index(wrpos)=%d",
+        super.toString(),
+        buffer.length, s, index);
+    if (s<0 || index<s || index>buffer.length) {
+        sret += ",Inconsistent!";
+    } else if (index==0) {
+        sret += ",Empty?";
+    } else if (index==buffer.length) {
+        sret += ",Full";
+    }
 
+    return sret;
+  }
 }

@@ -68,8 +68,7 @@ class KeyGen{
 
     try{
       KeyPair kpair=KeyPair.genKeyPair(jsch, type, key_size);
-      kpair.setPassphrase(passphrase);
-      kpair.writePrivateKey(filename);
+      kpair.writePrivateKey(filename, Util.str2byte(passphrase,"UTF-8"));
       kpair.writePublicKey(filename+".pub", comment);
       System.out.println("Finger print: "+kpair.getFingerPrint());
       kpair.dispose();

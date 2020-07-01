@@ -33,7 +33,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-class Util{
+public class Util{
 
   private static final byte[] b64 =Util.str2byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
   private static byte val(byte foo){
@@ -110,7 +110,7 @@ class Util{
     if(foo==null)
       return null;
     byte[] buf=Util.str2byte(foo);
-    java.util.Vector bar=new java.util.Vector();
+    java.util.Vector<String> bar=new java.util.Vector<String>();
     int start=0;
     int index;
     while(true){
@@ -396,7 +396,7 @@ class Util{
     return socket;
   } 
 
-  static byte[] str2byte(String str, String encoding){
+  static public byte[] str2byte(String str, String encoding){
     if(str==null) 
       return null;
     try{ return str.getBytes(encoding); }
@@ -405,26 +405,26 @@ class Util{
     }
   }
 
-  static byte[] str2byte(String str){
+  static public byte[] str2byte(String str){
     return str2byte(str, "UTF-8");
   }
 
-  static String byte2str(byte[] str, String encoding){
+  static public String byte2str(byte[] str, String encoding){
     return byte2str(str, 0, str.length, encoding);
   }
 
-  static String byte2str(byte[] str, int s, int l, String encoding){
+  static public String byte2str(byte[] str, int s, int l, String encoding){
     try{ return new String(str, s, l, encoding); }
     catch(java.io.UnsupportedEncodingException e){
       return new String(str, s, l);
     }
   }
 
-  static String byte2str(byte[] str){
+  static public String byte2str(byte[] str){
     return byte2str(str, 0, str.length, "UTF-8");
   }
 
-  static String byte2str(byte[] str, int s, int l){
+  static public String byte2str(byte[] str, int s, int l){
     return byte2str(str, s, l, "UTF-8");
   }
 

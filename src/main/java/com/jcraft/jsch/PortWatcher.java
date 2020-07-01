@@ -33,7 +33,7 @@ import java.net.*;
 import java.io.*;
 
 class PortWatcher implements Runnable{
-  private static java.util.Vector pool=new java.util.Vector();
+  private static java.util.Vector<PortWatcher> pool=new java.util.Vector<PortWatcher>();
   private static InetAddress anyLocalAddress=null;
   static{
     // 0.0.0.0
@@ -57,7 +57,7 @@ class PortWatcher implements Runnable{
   int connectTimeout=0;
 
   static String[] getPortForwarding(Session session){
-    java.util.Vector foo=new java.util.Vector();
+    java.util.Vector<String> foo=new java.util.Vector<String>();
     synchronized(pool){
       for(int i=0; i<pool.size(); i++){
 	PortWatcher p=(PortWatcher)(pool.elementAt(i));

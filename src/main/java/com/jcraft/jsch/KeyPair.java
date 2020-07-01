@@ -90,7 +90,7 @@ public abstract class KeyPair{
   private HASH hash;
   private Random random;
 
-  private byte[] passphrase;
+  private byte[] passphrase; /* methods setting this fields are deprecated */
 
   public KeyPair(JSch jsch){
     this.jsch=jsch;
@@ -194,12 +194,12 @@ public abstract class KeyPair{
 
   /**
    * Writes the public key with the specified comment to the file.
-   * @param name file name
+   * @param filename file name
    * @param comment comment
    * @see #writePublicKey(java.io.OutputStream out, String comment)
    */
-  public void writePublicKey(String name, String comment) throws java.io.FileNotFoundException, java.io.IOException{
-    FileOutputStream fos=new FileOutputStream(name);
+  public void writePublicKey(String filename, String comment) throws java.io.FileNotFoundException, java.io.IOException{
+    FileOutputStream fos=new FileOutputStream(filename);
     writePublicKey(fos, comment);
     fos.close();
   }
@@ -232,33 +232,33 @@ public abstract class KeyPair{
   /**
    * Writes the public key with the specified comment to the output stream in
    * the format defined in http://www.ietf.org/rfc/rfc4716.txt
-   * @param name file name
+   * @param filename file name
    * @param comment comment
    * @see #writeSECSHPublicKey(java.io.OutputStream out, String comment)
    */
-  public void writeSECSHPublicKey(String name, String comment) throws java.io.FileNotFoundException, java.io.IOException{
-    FileOutputStream fos=new FileOutputStream(name);
+  public void writeSECSHPublicKey(String filename, String comment) throws java.io.FileNotFoundException, java.io.IOException{
+    FileOutputStream fos=new FileOutputStream(filename);
     writeSECSHPublicKey(fos, comment);
     fos.close();
   }
 
   /**
    * Writes the plain private key to the file.
-   * @param name file name
-   * @see #writePrivateKey(String name,  byte[] passphrase)
+   * @param filename file name
+   * @see #writePrivateKey(String filename,  byte[] passphrase)
    */
-  public void writePrivateKey(String name) throws java.io.FileNotFoundException, java.io.IOException{
-    this.writePrivateKey(name, null);
+  public void writePrivateKey(String filename) throws java.io.FileNotFoundException, java.io.IOException{
+    this.writePrivateKey(filename, null);
   }
 
   /**
    * Writes the cyphered private key to the file.
-   * @param name file name
+   * @param filename file name
    * @param passphrase a passphrase to encrypt the private key
    * @see #writePrivateKey(java.io.OutputStream out,  byte[] passphrase)
    */
-  public void writePrivateKey(String name, byte[] passphrase) throws java.io.FileNotFoundException, java.io.IOException{
-    FileOutputStream fos=new FileOutputStream(name);
+  public void writePrivateKey(String filename, byte[] passphrase) throws java.io.FileNotFoundException, java.io.IOException{
+    FileOutputStream fos=new FileOutputStream(filename);
     writePrivateKey(fos, passphrase);
     fos.close();
   }
@@ -485,7 +485,19 @@ public abstract class KeyPair{
   }
 
   /**
-   * @deprecated use #writePrivateKey(String name, byte[] passphrase)
+   * @deprecated use #writePrivateKey(java.io.OutputStream out, byte[] passphrase)
+   */
+  public void setPassphrase(String passphrase, String charset){
+    if(passphrase==null || passphrase.length()==0){
+      setPassphrase((byte[])null);
+    }
+    else{
+      setPassphrase(Util.str2byte(passphrase, charset));
+    }
+  }
+
+  /**
+   * @deprecated use #writePrivateKey(String filename, byte[] passphrase)
    */
   public void setPassphrase(byte[] passphrase){
     if(passphrase!=null && passphrase.length==0) 
@@ -585,8 +597,7 @@ public abstract class KeyPair{
         prvkey[0]==0 && prvkey[1]==0 && prvkey[2]==0 &&
         (prvkey[3]==7 || prvkey[3]==19))){
 
-      Buffer buf=new Buffer(prvkey);
-      buf.skip(prvkey.length);  // for using Buffer#available()
+      Buffer buf=new Buffer(prvkey, true);
       String _type = new String(buf.getString()); // ssh-rsa or ssh-dss
       buf.rewind();
 
@@ -597,9 +608,9 @@ public abstract class KeyPair{
       else if(_type.equals("ssh-dss")){
         kpair=KeyPairDSA.fromSSHAgent(jsch, buf);
       }
-      else if(_type.equals("ecdsa-sha2-nistp256") ||
-              _type.equals("ecdsa-sha2-nistp384") ||
-              _type.equals("ecdsa-sha2-nistp521")){
+      else if(_type.equals(ECDSA_TYPES[0]) ||
+              _type.equals(ECDSA_TYPES[1]) ||
+              _type.equals(ECDSA_TYPES[2])){
         kpair=KeyPairECDSA.fromSSHAgent(jsch, buf);
       }
       else{
@@ -985,6 +996,12 @@ public abstract class KeyPair{
     "Private-MAC: "
   };
 
+  private static final String[] ECDSA_TYPES= {
+    "ecdsa-sha2-nistp256",
+    "ecdsa-sha2-nistp384",
+    "ecdsa-sha2-nistp521"
+  };
+
   static KeyPair loadPPK(JSch jsch, byte[] buf) throws JSchException {
     byte[] pubkey = null;
     byte[] prvkey = null;
@@ -1055,6 +1072,13 @@ public abstract class KeyPair{
       _buf.getByte(y_array);
 
       kpair = new KeyPairDSA(jsch, p_array, q_array, g_array, y_array, null);
+    }
+    else if(typ.equals(ECDSA_TYPES[0]) ||
+            typ.equals(ECDSA_TYPES[1]) ||
+            typ.equals(ECDSA_TYPES[2])){
+      Buffer bufPrvkey=new Buffer(prvkey, true);
+      kpair=KeyPairECDSA.fromSSHAgent(jsch, bufPrvkey);
+      return kpair;
     }
     else {
       return null;
