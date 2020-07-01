@@ -1076,9 +1076,7 @@ public abstract class KeyPair{
     else if(typ.equals(ECDSA_TYPES[0]) ||
             typ.equals(ECDSA_TYPES[1]) ||
             typ.equals(ECDSA_TYPES[2])){
-      Buffer bufPrvkey=new Buffer(prvkey, true);
-      kpair=KeyPairECDSA.fromSSHAgent(jsch, bufPrvkey);
-      return kpair;
+      kpair = new KeyPairECDSA (jsch, pubkey);
     }
     else {
       return null;
