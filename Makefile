@@ -10,11 +10,11 @@ JLIB   := /opt/lib/java
 CP     := ${JLIB}/jzlib.jar
 MINVER := 1.5
 
-SRCROOT:= src/main/java
-JFLAGS1:= -source ${MINVER} -target ${MINVER} -encoding UTF-8 -Xlint:deprecation -Xlint:unchecked
-JFLAGS := ${JFLAGS} -classpath ${CP}
-VER    := 0.1.55a
-FNAME  := jsch-${VER}
+SRCROOT  := src/main/java
+JFLAGS   := ${PRESET_JFLAGS} -source ${MINVER} -target ${MINVER} -encoding UTF-8 -Xlint:deprecation -Xlint:unchecked
+JFLAGSCP := ${JFLAGS} -classpath ${CP}
+VER      := 0.1.55a
+FNAME    := jsch-${VER}
 
 SOURCES := $(shell cd ${SRCROOT} && find . -name '*.java')
 OBJECTS := $(subst .java,*.class,${SOURCES})
@@ -28,7 +28,7 @@ all:
 
 compile:
 	cd src/main/java && \
-	${JAVAC} ${JFLAGS} ${SOURCES}
+	${JAVAC} ${JFLAGSCP} ${SOURCES}
 
 jar:
 	cd src/main/java && \
@@ -36,7 +36,10 @@ jar:
 
 compile-examples: ${FNAME}.jar
 compile-examples: CP := ${CP}:../${FNAME}.jar
-compile-examples: JFLAGS := ${JFLAGS1} -classpath ${CP}
+compile-examples: JFLAGSCP := ${JFLAGS} -classpath ${CP}
 compile-examples:
 	cd examples && \
-	${JAVAC} ${JFLAGS} ${EXAMPLES}
+	${JAVAC} ${JFLAGSCP} ${EXAMPLES}
+
+all-debug:
+	${MAKE} PRESET_JFLAGS=-g all
