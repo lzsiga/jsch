@@ -1,5 +1,5 @@
 # jsch
-Fork of Atsuhiko Yamanaka (ymnk)'s jsch-0.1.55 from sourceforge.net
+Fork of jsch-0.1.55 of Atsuhiko Yamanaka (ymnk) from sourceforge.net
 
 To tell the truth, I don't know anything about Java. Or git/github.
 I only wish to publish a little fix I've created.
@@ -8,7 +8,7 @@ Licence: BSD
 
 Java version: 1.5 or newer
 
-Versioning: I thing I'll start with **0.1.55a**, not to interfere with other forks
+Versioning: I think I'll start with **0.1.55a**, not to interfere with other forks
 
 Dependency: jcraft's jzlib (latest version is 1.1.3)
 - http://www.jcraft.com/jzlib/
