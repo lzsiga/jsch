@@ -287,6 +287,41 @@ public class Buffer{
     return buf;
   }
 
+  byte[] getFixlenBytes(int lengthlen) {
+/* sanity check */
+    if (s<0 || s>index || index>buffer.length) return null;
+/* overflow check */
+    if (s+lengthlen>index) return null;
+    long len= 0;
+    for (int j=0; j<lengthlen; ++j) {
+      len= (len<<8) + buffer[s+j];
+      if (s+lengthlen+len>index) return null;
+    }
+    s += lengthlen;
+
+    byte[] result= new byte[(int)len];
+    if (len>0) {
+      System.arraycopy(buffer, s, result, 0, (int)len);
+      s += (int)len;
+    }
+    return result;
+  }
+
+  byte[] getVarlenBytes() {
+/* sanity check */
+    if (s<0 || s>index || index>buffer.length) return null;
+/* empty check */
+    if (s>=index) return null;
+    int len1= buffer[s++]&0xff;
+/* length==0 */
+    if (len1==0) return new byte[0];
+/* undefined length */
+    if (len1==0x80) return null;
+    int lengthlen= len1&0x7f;
+/* overflow check */
+    if (s+lengthlen>index) return null;
+    return getFixlenBytes(lengthlen);
+  }
 
 /*
   static String[] chars={
