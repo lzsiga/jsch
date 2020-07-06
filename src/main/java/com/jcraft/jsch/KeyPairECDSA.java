@@ -161,6 +161,22 @@ public class KeyPairECDSA extends KeyPair{
   }
 
   /**
+   * This function parses a public key
+   *
+   * supported format: "SSH2 PUBLIC KEY" which is equal to the single-line
+   * format of OpenSSH, also it is the 'Public' part of the .PPK file
+   * length(4) "ecdsa-sha2-nistp256" (384, 521)
+   * length(4) "nistp256" (384, 521)
+   * length(4) 0x04 (it means uncompressed data) + public key (2*32,2*48,2*66 byte)
+   *
+   * not (yet) supported format: "PUBLIC KEY" which ASN1
+   * 'ssh-keygen -e -m PKCS8' generates this
+   */
+   boolean parsePublicKey(byte[] pubkey) {
+     Buffer buf= new Buffer(buf,true);
+   }
+
+  /**
    * This function parses an "EC PRIVATE KEY" (ASN1 format)
    * Defined in RFC5915:
    * ECPrivateKey ::= SEQUENCE {
