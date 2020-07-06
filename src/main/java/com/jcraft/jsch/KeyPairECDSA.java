@@ -162,17 +162,24 @@ public class KeyPairECDSA extends KeyPair{
 
   /**
    * This function parses an "EC PRIVATE KEY" (ASN1 format)
+   * Defined in RFC5915:
+   * ECPrivateKey ::= SEQUENCE {
+   *   version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+   *   privateKey     OCTET STRING
+   *   parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+   *   publicKey  [1] BIT STRING OPTIONAL
+   *
    * 'ssh-keygen' calls this 'PEM format (-m PEM)'
    * 'puttygen' calls this 'old OpenSSH format (-O private-openssh)'
    * 'openssl pkey' and 'openssl asn1parse' can process this format
    * sample: 
-   *    0:d=0  hl=2 l= 120 cons: SEQUENCE
-   *    2:d=1  hl=2 l=   1 prim:  INTEGER           :01
-   *    5:d=1  hl=2 l=  33 prim:  OCTET STRING      [HEX DUMP]:0093BC4014AC64579A0EA8CFA02F0791B789235DE75393ED1C04DEAF5ABEAAE60E
-   *   40:d=1  hl=2 l=  10 cons:  cont [ 0 ]
-   *   42:d=2  hl=2 l=   8 prim:   OBJECT            :prime256v1
-   *   52:d=1  hl=2 l=  68 cons:  cont [ 1 ]
-   *   54:d=2  hl=2 l=  66 prim:   BIT STRING
+   *    0:d=0  hl=2 l= 120 cons: SEQUENCE	    3078
+   *    2:d=1  hl=2 l=   1 prim:  INTEGER           0201 01
+   *    5:d=1  hl=2 l=  33 prim:  OCTET STRING      0421 0093BC4014AC...
+   *   40:d=1  hl=2 l=  10 cons:  cont [ 0 ]        A00A
+   *   42:d=2  hl=2 l=   8 prim:   OBJECT           0608 1.2.840.10045.3.1.7 (prime256v1)
+   *   52:d=1  hl=2 l=  68 cons:  cont [ 1 ]        A144
+   *   54:d=2  hl=2 l=  66 prim:   BIT STRING	    0342 000467a36ebe...
    */
   boolean parseOpenSSHPem(byte[] plain){
     try{
@@ -257,6 +264,26 @@ public class KeyPairECDSA extends KeyPair{
     return true;
   }
 
+  /**
+   * This function parses the 'Private' part from PuTTY's .PPK file
+   * format: offset=0: length(4)
+   *         offset=4: private key (32/48/66 bytes; + possible leading 0x00)
+   */
+  boolean parsePuttyPrivateKey(byte[] plain){
+    Buffer buf=new Buffer(plain, true);
+    if (buf.getLength()<4) return false;
+    int keylen= buf.getInt();
+    if (keylen<=0 || keylen>buf.getLength()) return false;
+    int byte1= buf.peekByte();
+    if (byte1==0) { /* skip leading 0x00 */
+       --keylen;
+       buf.getByte();
+    }
+    prv_array= new byte[keylen];
+    buf.getByte(prv_array);
+    return true;
+  }
+
   boolean parse(byte[] plain){
     try{
 
@@ -270,22 +297,9 @@ public class KeyPairECDSA extends KeyPair{
 	return false;
       }
       else if(vendor==VENDOR_PUTTY){
-        /*
-        Buffer buf=new Buffer(plain);
-        buf.skip(plain.length);
+        return parsePuttyPrivateKey(plain);
 
-        try {
-          byte[][] tmp = buf.getBytes(1, "");
-          prv_array = tmp[0];
-        }
-        catch(JSchException e){
-          return false;
-        }
-
-        return true;
-        */
-	return false;
-      } else {
+      } else{
         return parseOpenSSHPem(plain);
       }
     }
