@@ -152,6 +152,11 @@ public class Buffer{
   public int getByte() {
     return (buffer[s++]&0xff);
   }
+
+  public int peekByte() {
+    return (buffer[s]&0xff);
+  }
+
   public void getByte(byte[] foo) {
     getByte(foo, 0, foo.length);
   }
