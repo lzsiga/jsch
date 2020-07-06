@@ -160,36 +160,22 @@ public class KeyPairECDSA extends KeyPair{
     return plain;
   }
 
-  boolean parse(byte[] plain){
+  /**
+   * This function parses an "EC PRIVATE KEY" (ASN1 format)
+   * 'ssh-keygen' calls this 'PEM format (-m PEM)'
+   * 'puttygen' calls this 'old OpenSSH format (-O private-openssh)'
+   * 'openssl pkey' and 'openssl asn1parse' can process this format
+   * sample: 
+   *    0:d=0  hl=2 l= 120 cons: SEQUENCE
+   *    2:d=1  hl=2 l=   1 prim:  INTEGER           :01
+   *    5:d=1  hl=2 l=  33 prim:  OCTET STRING      [HEX DUMP]:0093BC4014AC64579A0EA8CFA02F0791B789235DE75393ED1C04DEAF5ABEAAE60E
+   *   40:d=1  hl=2 l=  10 cons:  cont [ 0 ]
+   *   42:d=2  hl=2 l=   8 prim:   OBJECT            :prime256v1
+   *   52:d=1  hl=2 l=  68 cons:  cont [ 1 ]
+   *   54:d=2  hl=2 l=  66 prim:   BIT STRING
+   */
+  boolean parseOpenSSHPem(byte[] plain){
     try{
-
-      if(vendor==VENDOR_FSECURE){
-        /*
-	if(plain[0]!=0x30){              // FSecure
-	  return true;
-	}
-	return false;
-        */
-	return false;
-      }
-      else if(vendor==VENDOR_PUTTY){
-        /*
-        Buffer buf=new Buffer(plain);
-        buf.skip(plain.length);
-
-        try {
-          byte[][] tmp = buf.getBytes(1, "");
-          prv_array = tmp[0];
-        }
-        catch(JSchException e){
-          return false;
-        }
-
-        return true;
-        */
-	return false;
-      }
-
       int index=0;
       int length=0;
 
@@ -269,6 +255,45 @@ public class KeyPairECDSA extends KeyPair{
       return false;
     }
     return true;
+  }
+
+  boolean parse(byte[] plain){
+    try{
+
+      if(vendor==VENDOR_FSECURE){
+        /*
+	if(plain[0]!=0x30){              // FSecure
+	  return true;
+	}
+	return false;
+        */
+	return false;
+      }
+      else if(vendor==VENDOR_PUTTY){
+        /*
+        Buffer buf=new Buffer(plain);
+        buf.skip(plain.length);
+
+        try {
+          byte[][] tmp = buf.getBytes(1, "");
+          prv_array = tmp[0];
+        }
+        catch(JSchException e){
+          return false;
+        }
+
+        return true;
+        */
+	return false;
+      } else {
+        return parseOpenSSHPem(plain);
+      }
+    }
+    catch(Exception e){
+      //System.err.println(e);
+      //e.printStackTrace();
+      return false;
+    }
   }
 
   public byte[] getPublicKeyBlob(){
