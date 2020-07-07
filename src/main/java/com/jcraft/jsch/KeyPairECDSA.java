@@ -63,6 +63,15 @@ public class KeyPairECDSA extends KeyPair{
     return null;
   }
 
+  private static ECDSA_Variant findVariantByMethod(String method) {
+    for(int i=0; i<variants.length; ++i) {
+      if(method.equals(variants[i].sMethodName)){
+        return variants[i];
+      }
+    }
+    return null;
+  }
+
   private static ECDSA_Variant findVariantByCurve(byte[] curve) {
     for(int i=0; i<variants.length; ++i) {
       if(Util.array_equals(curve, variants[i].bCurveName)){
@@ -258,8 +267,31 @@ public class KeyPairECDSA extends KeyPair{
   }
 
   boolean parseSingleLinePublicKey(Buffer buf) {
-    String stmp= new String (buf.buffer, buf.s, buf.index-buf.s, "ISO-8859-1");
-    String sparts[]= stmp.trim().split("\\s+");
+    String stmp= null;
+    try{
+      stmp= new String (buf.buffer, buf.s, buf.index-buf.s, "ISO-8859-1");
+    }catch(java.io.UnsupportedEncodingException e) {
+      return false;
+    }
+    String sparts[]=stmp.trim().split("\\s+");
+    if(sparts.length<2) return false;
+
+    variant=findVariantByMethod(sparts[0]);
+    if(variant==null) return false;
+
+    byte[] public_base64= null;
+    byte[] public_blob= null;
+    try {
+      public_base64=sparts[1].getBytes("ISO-8859-1");
+      public_blob=Util.fromBase64(public_base64, 0, public_base64.length);
+    }catch(java.io.UnsupportedEncodingException e){
+      return false;
+    }catch(JSchException ex){
+      return false;
+    }
+
+    /* <FIXME> */
+    return true;
   }
 
   /**
@@ -273,8 +305,8 @@ public class KeyPairECDSA extends KeyPair{
      Buffer buf= new Buffer(pubkey,true);
 
      int byte1= buf.peekByte();
-     if (byte1==0x00) return parseSSH2PublicKey(buf)
-     if (byte1==(char)'e') return parseSingleLinePublicKey(buf);
+     if(byte1==0x00) return parseSSH2PublicKey(buf);
+     else if(byte1==(char)'e') return parseSingleLinePublicKey(buf);
      return false; /* it could be 0x30 (ASN1.SEQUENCE) -- not supported yet */
    }
 
