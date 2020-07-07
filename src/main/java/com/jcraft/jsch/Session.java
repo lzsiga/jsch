@@ -565,8 +565,10 @@ public class Session implements Runnable{
       throw new JSchException("Session.connect: "+e);
     }
     finally{
-      Util.bzero(this.password);
-      this.password=null;
+      if(this.password!=null){
+        Util.bzero(this.password);
+        this.password=null;
+      }
     }
   }
 
