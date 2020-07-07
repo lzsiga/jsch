@@ -30,26 +30,93 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jcraft.jsch;
 
 public class KeyPairECDSA extends KeyPair{
+  static class ECDSA_Variant {
+    public final String sMethodName; /* "ecdsa-sha2-nistp256" */
+    public final byte[] bMethodName;
+    public final String sCurveName;  /* "nistp256" */
+    public final byte[] bCurveName;
+    public final int keySize;       /* bits: 256, 384, 521 */
+    public final byte[] oid;        /* 1.2.840.10045.3.1.7, 1.3.132.0.34, 1.3.132.0.35 */
 
-  private static byte[][] oids = {
-    {(byte)0x06, (byte)0x08, (byte)0x2a, (byte)0x86, (byte)0x48, // 256
-     (byte)0xce, (byte)0x3d, (byte)0x03, (byte)0x01, (byte)0x07},
-    {(byte)0x06, (byte)0x05, (byte)0x2b, (byte)0x81, (byte)0x04, // 384
-     (byte)0x00, (byte)0x22},
-    {(byte)0x06, (byte)0x05, (byte)0x2b, (byte)0x81, (byte)0x04, //521
-     (byte)0x00, (byte)0x23},
+    public ECDSA_Variant (String pCurveName, int pKeySize, byte[] pOid) {
+      sMethodName= "ecdsa-sha2-"+pCurveName;
+      bMethodName= Util.str2byte(sMethodName);
+      sCurveName= pCurveName;
+      bCurveName= Util.str2byte(sCurveName);
+      keySize= pKeySize;
+      oid= pOid;
+    }
+  }
+
+  static final ECDSA_Variant variants[] = {
+    new ECDSA_Variant("nistp256", 256, new byte[] {0x06, 0x08, 0x2a, (byte)0x86, 0x48, (byte)0xce, 0x3d, 0x03, 0x01, 0x07}),
+    new ECDSA_Variant("nistp384", 384, new byte[] {0x06, 0x05, 0x2b, (byte)0x81, 0x04, 0x00, 0x22}),
+    new ECDSA_Variant("nistp521", 521, new byte[] {0x06, 0x05, 0x2b, (byte)0x81, 0x04, 0x00, 0x23})
   };
 
-  private static String[] names = {
-    "nistp256", "nistp384", "nistp521"
-  };
+  private static ECDSA_Variant findVariantByMethod(byte[] method) {
+    for(int i=0; i<variants.length; ++i) {
+      if(Util.array_equals(method, variants[i].bMethodName)){
+        return variants[i];
+      }
+    }
+    return null;
+  }
 
-  private byte[] name=Util.str2byte(names[0]);
+  private static ECDSA_Variant findVariantByCurve(byte[] curve) {
+    for(int i=0; i<variants.length; ++i) {
+      if(Util.array_equals(curve, variants[i].bCurveName)){
+        return variants[i];
+      }
+    }
+    return null;
+  }
+
+  private static ECDSA_Variant findVariantByBits(int bits) {
+    for(int i=0; i<variants.length; ++i) {
+      if(bits==variants[i].keySize){
+        return variants[i];
+      }
+    }
+    return null;
+  }
+
+  private static ECDSA_Variant findVariantByPubBytes(int bytes) {
+    for(int i=0; i<variants.length; ++i) {
+      int publen= ((variants[i].keySize+7)/8)*2;
+      if (bytes>=publen && bytes<=publen+2) { /* public key is often prefixed with 0x04;
+                                                 sometimes with 0x00 0x04 */
+        return variants[i];
+      }
+    }
+    return null;
+  }
+
+  private static ECDSA_Variant findVariantByPrvBytes(int bytes) {
+    for(int i=0; i<variants.length; ++i) {
+      int prvlen= (variants[i].keySize+7)/8;
+      if (bytes>=prvlen && bytes<=prvlen+1) { /* private key is sometimes prefixed with 0x00 (if MSB is set) */
+        return variants[i];
+      }
+    }
+    return null;
+  }
+
+  private static ECDSA_Variant findVariantByOid(byte[] oid) {
+    for(int i=0; i<variants.length; ++i) {
+      if(Util.array_equals(oid, variants[i].oid)){
+        return variants[i];
+      }
+    }
+    return null;
+  }
+
+  private ECDSA_Variant variant= variants[0]; /* default to nistp256 */
+// private byte[] curveName=variant.bCurveName;
+// private int key_size=variant.keySize;
   private byte[] r_array;
   private byte[] s_array;
   private byte[] prv_array;
-
-  private int key_size=256;
 
   public KeyPairECDSA(JSch jsch){
     this(jsch, null, null, null, null);
@@ -61,35 +128,44 @@ public class KeyPairECDSA extends KeyPair{
     if(pubkey!=null){
       byte[] name = new byte[8];
       System.arraycopy(pubkey, 11, name, 0, 8);
-      if(Util.array_equals(name, Util.str2byte("nistp384"))){
-        key_size=384;
-        this.name=name;
-      }
-      if(Util.array_equals(name, Util.str2byte("nistp521"))){
-        key_size=521;
-        this.name=name;
-      }
+      if(Util.array_equals(name, variants[0].bCurveName)){
+        variant= variants[0];
+      } else if(Util.array_equals(name, variants[1].bCurveName)){
+        variant= variants[1];
+      } else if(Util.array_equals(name, variants[2].bCurveName)){
+        variant= variants[2];
+      } /* else <FIXME> */
     }
   }
 
   public KeyPairECDSA(JSch jsch,
-                      byte[] name,
+                      byte[] pCurveName,
                       byte[] r_array,
                       byte[] s_array,
-                      byte[] prv_array){
+                      byte[] prv_array) {
     super(jsch);
-    if(name!=null)
-      this.name = name;
+    if(pCurveName!=null) {
+      variant= findVariantByCurve(pCurveName);
+/*    if(variant==null) throw new JSchException("Invalid curve name for ECDSA"); */
+
+    } else if (prv_array!=null) {
+      variant= findVariantByPrvBytes(prv_array.length);
+/*    if (variant==null) {
+        String msg= String.format("Invalid private-key length (%d bytes) for ECDSA", prv_array.length);
+        throw new JSchException(msg);
+      } */
+    }
     this.r_array = r_array;
     this.s_array = s_array;
     this.prv_array = prv_array;
-    if(prv_array!=null)
-      key_size = prv_array.length>=64 ? 521 : 
-                  (prv_array.length>=48 ? 384 : 256);
   }
 
   void generate(int key_size) throws JSchException{
-    this.key_size=key_size;
+    variant= findVariantByBits(key_size);
+    if(variant==null) {
+        String msg= String.format("Invalid key length (%d bits) for ECDSA", key_size);
+        throw new JSchException(msg);
+    }
     try{
       Class c=Class.forName(jsch.getConfig("keypairgen.ecdsa"));
       KeyPairGenECDSA keypairgen=(KeyPairGenECDSA)(c.newInstance());
@@ -97,8 +173,6 @@ public class KeyPairECDSA extends KeyPair{
       prv_array=keypairgen.getD();
       r_array=keypairgen.getR();
       s_array=keypairgen.getS();
-      name=Util.str2byte(names[prv_array.length>=64 ? 2 :
-                               (prv_array.length>=48 ? 1 : 0)]);
       keypairgen=null;
     }
     catch(Exception e){
@@ -120,10 +194,10 @@ public class KeyPairECDSA extends KeyPair{
 
     byte[] tmp = new byte[1]; tmp[0]=1;
 
-    byte[] oid = oids[
-                      (r_array.length>=64) ? 2 :
+    byte[] oid = variants[
+                        (r_array.length>=64) ? 2 :
                        ((r_array.length>=48) ? 1 : 0)
-                     ];
+                     ].oid;
 
     byte[] point = toPoint(r_array, s_array);
 
@@ -168,12 +242,40 @@ public class KeyPairECDSA extends KeyPair{
    * length(4) "ecdsa-sha2-nistp256" (384, 521)
    * length(4) "nistp256" (384, 521)
    * length(4) 0x04 (it means uncompressed data) + public key (2*32,2*48,2*66 byte)
+   */
+  boolean parseSSH2PublicKey(Buffer buf) {
+    int partlen= buf.getInt();
+    if (partlen<0 || partlen>buf.getLength()) return false;
+
+    byte[] bPart= new byte[partlen];
+    buf.getByte(bPart);
+
+    variant= findVariantByMethod(bPart);
+    if(variant==null)
+      return false;
+
+    return true;
+  }
+
+  boolean parseSingleLinePublicKey(Buffer buf) {
+    String stmp= new String (buf.buffer, buf.s, buf.index-buf.s, "ISO-8859-1");
+    String sparts[]= stmp.trim().split("\\s+");
+  }
+
+  /**
+   * This function parses a public key, tries to recognise its format from the first bytes
    *
-   * not (yet) supported format: "PUBLIC KEY" which ASN1
+   * not (yet) supported format: "PUBLIC KEY" which is ASN1
    * 'ssh-keygen -e -m PKCS8' generates this
    */
    boolean parsePublicKey(byte[] pubkey) {
-     Buffer buf= new Buffer(buf,true);
+     if (pubkey.length<64 || pubkey.length>8192) return false;
+     Buffer buf= new Buffer(pubkey,true);
+
+     int byte1= buf.peekByte();
+     if (byte1==0x00) return parseSSH2PublicKey(buf)
+     if (byte1==(char)'e') return parseSingleLinePublicKey(buf);
+     return false; /* it could be 0x30 (ASN1.SEQUENCE) -- not supported yet */
    }
 
   /**
@@ -245,12 +347,9 @@ public class KeyPairECDSA extends KeyPair{
       System.arraycopy(plain, index, oid_array, 0, length);
       index+=length;
 
-      for(int i = 0; i<oids.length; i++){
-        if(Util.array_equals(oids[i], oid_array)){
-          name = Util.str2byte(names[i]);
-          break;
-        }
-      }
+      variant= findVariantByOid(oid_array);
+      if (variant==null)
+        return false;
 
       index++;  // 0xa1
 
@@ -267,10 +366,6 @@ public class KeyPairECDSA extends KeyPair{
       byte[][] tmp = fromPoint(Q_array);
       r_array = tmp[0];
       s_array = tmp[1];
-
-      if(prv_array!=null)
-        key_size = prv_array.length>=64 ? 521 : 
-                    (prv_array.length>=48 ? 384 : 256);
     }
     catch(Exception e){
       //System.err.println(e);
@@ -334,8 +429,8 @@ public class KeyPairECDSA extends KeyPair{
     if(r_array==null) return null;
 
     byte[][] tmp = new byte[3][];
-    tmp[0] = Util.str2byte("ecdsa-sha2-"+new String(name));
-    tmp[1] = name;
+    tmp[0] = variant.bMethodName;
+    tmp[1] = variant.bCurveName;
     tmp[2] = new byte[1+r_array.length+s_array.length];
     tmp[2][0] = 4;   // POINT_CONVERSION_UNCOMPRESSED
     System.arraycopy(r_array, 0, tmp[2], 1, r_array.length);
@@ -345,18 +440,20 @@ public class KeyPairECDSA extends KeyPair{
   }
 
   byte[] getKeyTypeName(){
-    return Util.str2byte("ecdsa-sha2-"+new String(name));
+    return variant.bMethodName;
   }
+
   public int getKeyType(){
     return ECDSA;
   }
+
   public int getKeySize(){
-    return key_size;
+    return variant.keySize;
   }
 
   public byte[] getSignature(byte[] data){
     try{
-      Class c=Class.forName((String)jsch.getConfig("ecdsa-sha2-"+new String(name)));
+      Class c=Class.forName((String)jsch.getConfig(variant.sMethodName));
       SignatureECDSA ecdsa=(SignatureECDSA)(c.newInstance());
       ecdsa.init();
       ecdsa.setPrvKey(prv_array);
@@ -365,7 +462,7 @@ public class KeyPairECDSA extends KeyPair{
       byte[] sig = ecdsa.sign();
 
       byte[][] tmp = new byte[2][];
-      tmp[0] = Util.str2byte("ecdsa-sha2-"+new String(name));
+      tmp[0] = variant.bMethodName;
       tmp[1] = sig;
       return Buffer.fromBytes(tmp).buffer;
     }
@@ -377,7 +474,7 @@ public class KeyPairECDSA extends KeyPair{
 
   public Signature getVerifier(){
     try{
-      Class c=Class.forName((String)jsch.getConfig("ecdsa-sha2-"+new String(name)));
+      Class c=Class.forName((String)jsch.getConfig(variant.sMethodName));
       final SignatureECDSA ecdsa=(SignatureECDSA)(c.newInstance());
       ecdsa.init();
 
@@ -422,8 +519,8 @@ public class KeyPairECDSA extends KeyPair{
       throw new JSchException("key is encrypted.");
     }
     Buffer buf = new Buffer();
-    buf.putString(Util.str2byte("ecdsa-sha2-"+new String(name)));
-    buf.putString(name);
+    buf.putString(variant.bMethodName);
+    buf.putString(variant.bCurveName);
     buf.putString(toPoint(r_array, s_array));
     buf.putString(prv_array);
     buf.putString(Util.str2byte(publicKeyComment));
