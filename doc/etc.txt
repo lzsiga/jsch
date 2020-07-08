@@ -15,12 +15,18 @@ Conversion between 'byte[]' and 'String'
     In version 0.1.55a these methods became 'public': they might be useful as they are easier
     to use than 'new String' and 'String.getBytes': they handle null value, and don't throw exceptions
 
+    Note: if we have binary data that is supposed to be ASCII, but actually it can contain
+    other characters (e.g. in the 'comment' part), converting it to String
+    with UTF8-encoding might fail, as not every binary sequence is valid as UTF8;
+    so encoding ISO-8859-1 might be safer: every binary sequence is valid as ISO-8859-1
+    (for an example, see KeyPairECDSA.parsePublicKeySingleLine)
+
   Example for such conversion:
     'ChannelSession' has an 'env' member of type 'Hashtable<byte[],byte[]>'
      When you store (key,value) pair with 'setEnv(String,String)', 'str2byte' is used
      When using 'setEnv(byte[],byte[])' there is no converion.
 
-Supported private-key-file format
+Supported key-file formats
 
     Version 1.55 supports PPK-files with RSA and DSA keys, Windows-style (CRLF) lines,
-    version 1.55a intends to support more formats.
+    version 1.55a intends to support PPK-files with RSA, DSA or ECDSA keys, CRLF of LF line-ends.
