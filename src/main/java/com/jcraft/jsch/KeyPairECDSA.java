@@ -252,7 +252,7 @@ public class KeyPairECDSA extends KeyPair{
    * length(4) "nistp256" (384, 521)
    * length(4) 0x04 (it means uncompressed data) + public key (2*32,2*48,2*66 byte)
    */
-  boolean parseSSH2PublicKey(Buffer buf) {
+  boolean parsePublicKeySSH2(Buffer buf) {
     int partlen= buf.getInt();
     if (partlen<0 || partlen>buf.getLength()) return false;
 
@@ -266,7 +266,13 @@ public class KeyPairECDSA extends KeyPair{
     return true;
   }
 
-  boolean parseSingleLinePublicKey(Buffer buf) {
+/** This method parses a single line public key (of type ECDSA)
+  * Example:
+  *  ecdsa-sha2-nistp521 AAAAE...yQQ== projects@HP-11653
+  *  ^identifier         ^data(base64) ^comment
+  * the 'data' part (after base64-decode) can be parsed with 'parsePublicKeySSH2'
+  */
+  boolean parsePublicKeySingleLine(Buffer buf) {
     String stmp= null;
     try{
       stmp= new String (buf.buffer, buf.s, buf.index-buf.s, "ISO-8859-1");
@@ -280,24 +286,34 @@ public class KeyPairECDSA extends KeyPair{
     if(variant==null) return false;
 
     byte[] public_base64= null;
-    byte[] public_blob= null;
+    byte[] public_binary= null;
     try {
       public_base64=sparts[1].getBytes("ISO-8859-1");
-      public_blob=Util.fromBase64(public_base64, 0, public_base64.length);
+      public_binary=Util.fromBase64(public_base64, 0, public_base64.length);
     }catch(java.io.UnsupportedEncodingException e){
       return false;
     }catch(JSchException ex){
       return false;
     }
-
+    boolean success=parsePublicKeySSH2(new Buffer(public_binary, true));
+    if(success){
+      if(sparts.length>=3){
+        publicKeyComment= sparts[2];
+      }
+    }
     /* <FIXME> */
-    return true;
+    return success;
   }
 
   /**
-   * This function parses a public key, tries to recognise its format from the first bytes
+   * This function parses a public key
+   * It guesses the file-format from the first byte
    *
-   * not (yet) supported format: "PUBLIC KEY" which is ASN1
+   * supported formats:
+   *  'single line' (see method 'parsePublicKeySingleLine')
+   *  'SSH2 PUBLIC KEY' (see method parsePublicKeySingleLine)
+   *
+   * not (yet) supported format: "EC PUBLIC KEY" which is ASN1
    * 'ssh-keygen -e -m PKCS8' generates this
    */
    boolean parsePublicKey(byte[] pubkey) {
@@ -305,8 +321,8 @@ public class KeyPairECDSA extends KeyPair{
      Buffer buf= new Buffer(pubkey,true);
 
      int byte1= buf.peekByte();
-     if(byte1==0x00) return parseSSH2PublicKey(buf);
-     else if(byte1==(char)'e') return parseSingleLinePublicKey(buf);
+     if(byte1==0x00) return parsePublicKeySSH2(buf);
+     else if(byte1==(char)'e') return parsePublicKeySingleLine(buf);
      return false; /* it could be 0x30 (ASN1.SEQUENCE) -- not supported yet */
    }
 
