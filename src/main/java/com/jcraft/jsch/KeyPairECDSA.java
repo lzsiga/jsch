@@ -131,19 +131,11 @@ public class KeyPairECDSA extends KeyPair{
     this(jsch, null, null, null, null);
   }
 
-  public KeyPairECDSA(JSch jsch , byte[] pubkey){
+  public KeyPairECDSA(JSch jsch, byte[] pubkey){
     this(jsch, null, null, null, null);
 
     if(pubkey!=null){
-      byte[] name = new byte[8];
-      System.arraycopy(pubkey, 11, name, 0, 8);
-      if(Util.array_equals(name, variants[0].bCurveName)){
-        variant= variants[0];
-      } else if(Util.array_equals(name, variants[1].bCurveName)){
-        variant= variants[1];
-      } else if(Util.array_equals(name, variants[2].bCurveName)){
-        variant= variants[2];
-      } /* else <FIXME> */
+      parsePublicKey (pubkey); /* should we report error? Exception? */
     }
   }
 
@@ -251,8 +243,11 @@ public class KeyPairECDSA extends KeyPair{
    * length(4) "ecdsa-sha2-nistp256" (384, 521)
    * length(4) "nistp256" (384, 521)
    * length(4) 0x04 (it means uncompressed data) + public key (2*32,2*48,2*66 byte)
+   * sometimes there is 0x00 before 0x04 (why?)
    */
   boolean parsePublicKeySSH2(Buffer buf) {
+
+/* 1st part: method name -- should be one of the three known values */
     int partlen= buf.getInt();
     if (partlen<0 || partlen>buf.getLength()) return false;
 
@@ -262,6 +257,36 @@ public class KeyPairECDSA extends KeyPair{
     variant= findVariantByMethod(bPart);
     if(variant==null)
       return false;
+
+/* 2nd part: curve name -- should be compatible with the previous */
+    partlen= buf.getInt();
+    if (partlen<0 || partlen>buf.getLength()) return false;
+
+    bPart= new byte[partlen];
+    buf.getByte(bPart);
+    if(!Util.array_equals(bPart, variant.bCurveName))
+      return false;
+
+/* 3nd part: binary key 2*((keysize+7)/8) bytes
+   it should be prefixed with 0x04 (also 0x00 is possible before 0x04) */
+    partlen= buf.getInt();
+    if (partlen<0 || partlen>buf.getLength()) return false;
+    int netpubkeylen= 2*((variant.keySize+7)/8);
+
+    while (partlen>=netpubkeylen+2) {
+      int bprefix=buf.getByte();
+      if (bprefix!=0x00) return false;
+      --partlen;
+    }
+    if (partlen!=netpubkeylen+1) return false;
+    int bprefix=buf.peekByte();
+    if (bprefix!=0x04) return false;
+    bPart= new byte[partlen];
+    buf.getByte(bPart);
+
+    byte[][] brs=fromPoint(bPart);
+    r_array = brs[0];
+    s_array = brs[1];
 
     return true;
   }
@@ -282,9 +307,11 @@ public class KeyPairECDSA extends KeyPair{
     String sparts[]=stmp.trim().split("\\s+");
     if(sparts.length<2) return false;
 
+/* 1st part: method, human readable, eg: ecdsa-sha2-nistp521 */
     variant=findVariantByMethod(sparts[0]);
     if(variant==null) return false;
 
+/* 2nd part: binary data encoded in Base64, we forward it to `parsePublicKeySSH` */
     byte[] public_base64= null;
     byte[] public_binary= null;
     try {
@@ -297,11 +324,11 @@ public class KeyPairECDSA extends KeyPair{
     }
     boolean success=parsePublicKeySSH2(new Buffer(public_binary, true));
     if(success){
+/* 3rd part (optional): comment */
       if(sparts.length>=3){
         publicKeyComment= sparts[2];
       }
     }
-    /* <FIXME> */
     return success;
   }
 
