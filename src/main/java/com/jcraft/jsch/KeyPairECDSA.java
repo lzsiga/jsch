@@ -333,15 +333,39 @@ public class KeyPairECDSA extends KeyPair{
   }
 
   /**
+   * This function parses a public key in "EC PUBLIC KEY" format
+   * which is ASN1
+   * 'ssh-keygen -e -m PKCS8' generates this
+   * sample:
+   *   3059 SEQUENCE, length=0x59
+   *   3013 SEQUENCE, length=0x13
+   *   0607 OBJECT, length=0x07, 2a8648ce3d0201   OID 1.2.840.10045.2.1   ecPublicKey
+   *   0608 OBJECT, length=0x08, 2a8648ce3d030107 OID 1.2.840.10045.3.1.7 prime256v1
+   *   0342 BIT STRING length=0x42, 000467a36ebe40..0e1e7bcf
+   */
+  boolean parsePublicKeyPkcs8(Buffer buf) {
+    if (buf.getLength()<64) return false;
+
+    com.jcraft.jsch.ASN1 aTotal= buf.getASN1Part();
+    if (aTotal==null || aTotal.asn1Type!=com.jcraft.jsch.ASN1.SEQUENCE) return false;
+
+    com.jcraft.jsch.ASN1 aId= aTotal.getASN1Part();
+    if (aId==null || aId.asn1Type!=com.jcraft.jsch.ASN1.SEQUENCE) return false;
+    com.jcraft.jsch.ASN1 aOid1= aTotal.getASN1Part();
+    if (aOid1==null || aOid1.asn1Type!=com.jcraft.jsch.ASN1.OBJECT) return false;
+    com.jcraft.jsch.ASN1 aOid2= aTotal.getASN1Part();
+    if (aOid2==null || aOid2.asn1Type!=com.jcraft.jsch.ASN1.OBJECT) return false;
+
+    return false;
+  }
+
+  /**
    * This function parses a public key
    * It guesses the file-format from the first byte
    *
    * supported formats:
    *  'single line' (see method 'parsePublicKeySingleLine')
    *  'SSH2 PUBLIC KEY' (see method parsePublicKeySingleLine)
-   *
-   * not (yet) supported format: "EC PUBLIC KEY" which is ASN1
-   * 'ssh-keygen -e -m PKCS8' generates this
    */
    boolean parsePublicKey(byte[] pubkey) {
      if (pubkey.length<64 || pubkey.length>8192) return false;
@@ -349,7 +373,8 @@ public class KeyPairECDSA extends KeyPair{
 
      int byte1= buf.peekByte();
      if(byte1==0x00) return parsePublicKeySSH2(buf);
-     else if(byte1==(char)'e') return parsePublicKeySingleLine(buf);
+     else if(byte1==(int)'e')  return parsePublicKeySingleLine(buf);
+     else if(byte1==(int)0x30) return parsePublicKeyPkcs8(buf);
      return false; /* it could be 0x30 (ASN1.SEQUENCE) -- not supported yet */
    }
 

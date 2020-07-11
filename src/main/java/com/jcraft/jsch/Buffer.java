@@ -312,6 +312,49 @@ public class Buffer{
     return result;
   }
 
+/** get an ASN1-standard variable-length
+ *  return  0: success, 'length' is valid, non-negative
+ *  return  1: success, 'length' is undefined (ASN1 0x80)
+ *  return -1: failure, 'length' couldn't be read or invalid
+ */
+  int getVarlen(int retval[]) {
+/* preset ret-length to zero */
+   retval[0]= 0;
+/* sanity check */
+    if(s<0 || s>index || index>buffer.length)
+      return -1;
+/* empty check */
+    if(s>=index)
+      return -1;
+
+    int len1= buffer[s++]&0xff;
+
+    if(len1<0x80){        /* 0..0x7f actual length */
+      retval[0]= len1;
+      return 0;
+    }else if(len1==0x80){ /* 0x80 undefined length */
+      retval[0]= 0;
+      return 1;
+    }else{                /* 0x80 + number of bytes in length */
+      int lengthlen= len1&0x7f;
+/* overflow check */
+      if(s+lengthlen>index)
+        return -1;
+      long len=0;
+      boolean fail=false;
+      for (int j=0; !fail && j<lengthlen; ++j){
+        len= (len<<8) + buffer[s+j];
+        if(len>Integer.MAX_VALUE)
+          fail= true;
+      }
+      s+=lengthlen;
+      if(fail)
+        return -1;
+      retval[0]= (int)len;
+      return 0;
+    }
+  }
+
   byte[] getVarlenBytes() {
 /* sanity check */
     if (s<0 || s>index || index>buffer.length) return null;
@@ -326,6 +369,45 @@ public class Buffer{
 /* overflow check */
     if (s+lengthlen>index) return null;
     return getFixlenBytes(lengthlen);
+  }
+
+/** get an ASN1-variable-length-data
+ *  return  0: success
+ *  return  1: success, 'length' is undefined (ASN1 0x80)
+ *  return -1: failure
+ */
+  int getVarlenPart(int rettype[], int retlen[], byte[][] retbytes) {
+    rettype[0]= 0;
+    retlen[0]= 0;
+    retbytes[0]= null;
+/* sanity check */
+    if(s<0 || s>index || index>buffer.length) return -1;
+/* it has to have at least two bytes */
+    if (s+1>=index) return -1;
+    int byte1= getByte();
+    rettype[0]= byte1;
+
+    int rc= getVarlen(retlen);
+    if (rc!=0)
+      return rc;
+    if (retlen[0]+s>index)
+      return -1;
+    byte[] bpart= new byte[retlen[0]];
+    System.arraycopy(buffer, s, bpart, 0, retlen[0]);
+    s += retlen[0];
+    retbytes[0]= bpart;
+    return 0;
+  }
+
+  public ASN1 getASN1Part() {
+    int[] asn1type= {0};
+    int[] partlen= {0};
+    byte[][] bpart= null;
+    int rc= getVarlenPart(asn1type, partlen, bpart);
+    if(rc==0)
+      return new ASN1(asn1type[0], bpart[0]);
+    else
+      return null;
   }
 
 /*

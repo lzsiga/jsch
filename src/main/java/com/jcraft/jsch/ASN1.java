@@ -1,6 +1,6 @@
 package com.jcraft.jsch;
 
-public class ASN1 {
+public class ASN1 extends Buffer {
 /* bits 2^7 and 2^6 */
   public static final int UNIVERSAL=       0x00;
   public static final int APPLICATION=     0x40;
@@ -23,4 +23,21 @@ public class ASN1 {
   public static final int SEQUENCE_OF    = 0x30;
   public static final int SET            = 0x31;
   public static final int SET_OF         = 0x31;
+
+  int asn1Type;
+
+  public ASN1 (int pAsn1Type, Buffer pBuffer) {
+    super(pBuffer.buffer, true);
+    asn1Type= pAsn1Type;
+  }
+
+  public ASN1 (int pAsn1Type, byte[] buf) {
+    super(buf, true);
+    asn1Type= pAsn1Type;
+  }
+
+  public ASN1 (int pAsn1Type, int capacity) {
+    super(capacity);
+    asn1Type= pAsn1Type;
+  }
 }
