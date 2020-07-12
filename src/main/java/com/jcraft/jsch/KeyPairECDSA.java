@@ -271,20 +271,10 @@ public class KeyPairECDSA extends KeyPair{
    it should be prefixed with 0x04 (also 0x00 is possible before 0x04) */
     partlen= buf.getInt();
     if (partlen<0 || partlen>buf.getLength()) return false;
-    int netpubkeylen= 2*((variant.keySize+7)/8);
 
-    while (partlen>=netpubkeylen+2) {
-      int bprefix=buf.getByte();
-      if (bprefix!=0x00) return false;
-      --partlen;
-    }
-    if (partlen!=netpubkeylen+1) return false;
-    int bprefix=buf.peekByte();
-    if (bprefix!=0x04) return false;
-    bPart= new byte[partlen];
-    buf.getByte(bPart);
-
-    byte[][] brs=fromPoint(bPart);
+    byte[][] brs=fromPoint(buf, variant.keySize);
+    if (brs==null)
+      return false;
     r_array = brs[0];
     s_array = brs[1];
 
@@ -359,11 +349,19 @@ public class KeyPairECDSA extends KeyPair{
     com.jcraft.jsch.ASN1 aOid2= aTotal.getASN1Part();
     if (aOid2==null || aOid2.asn1Type!=com.jcraft.jsch.ASN1.OBJECT)
       return false;
-    variant= findVariantByOid(aOid2.buffer);
+    variant= findVariantByOid(aOid2.peekContent());
     if(variant==null){
       return false;
     }
-    return false;
+
+    com.jcraft.jsch.ASN1 aPubKey= aTotal.getASN1Part();
+    if(aPubKey==null || aPubKey.asn1Type!=com.jcraft.jsch.ASN1.BIT_STRING)
+      return false;
+    byte[][] brs= fromPoint(aPubKey, variant.keySize);
+    r_array = brs[0];
+    s_array = brs[1];
+
+    return true;
   }
 
   /**
@@ -408,72 +406,38 @@ public class KeyPairECDSA extends KeyPair{
    */
   boolean parseOpenSSHPem(byte[] plain){
     try{
-      int index=0;
-      int length=0;
-
-      if(plain[index]!=0x30)return false;
-      index++; // SEQUENCE
-      length=plain[index++]&0xff;
-      if((length&0x80)!=0){
-        int foo=length&0x7f; length=0;
-        while(foo-->0){ length=(length<<8)+(plain[index++]&0xff); }
-      }
-
-      if(plain[index]!=0x02)return false;
-      index++; // INTEGER
-
-      length=plain[index++]&0xff;
-      if((length&0x80)!=0){
-        int foo=length&0x7f; length=0;
-        while(foo-->0){ length=(length<<8)+(plain[index++]&0xff); }
-      }
-
-      index+=length;
-      index++;   // 0x04
-
-      length=plain[index++]&0xff;
-      if((length&0x80)!=0){
-        int foo=length&0x7f; length=0;
-        while(foo-->0){ length=(length<<8)+(plain[index++]&0xff); }
-      }
-
-      prv_array=new byte[length];
-      System.arraycopy(plain, index, prv_array, 0, length);
-
-      index+=length;
-
-      index++;  // 0xa0
-
-      length=plain[index++]&0xff;
-      if((length&0x80)!=0){
-        int foo=length&0x7f; length=0;
-        while(foo-->0){ length=(length<<8)+(plain[index++]&0xff); }
-      }
-
-      byte[] oid_array=new byte[length];
-      System.arraycopy(plain, index, oid_array, 0, length);
-      index+=length;
-      com.jcraft.jsch.ASN1 oidPrime=Buffer.getASN1Part(oid_array);
-
-      if (oidPrime.asn1Type!=com.jcraft.jsch.ASN1.OBJECT)
-        return false;
-      variant= findVariantByOid(oidPrime.buffer);
-      if (variant==null)
+      Buffer buf= new Buffer(plain, true);
+      com.jcraft.jsch.ASN1 aTot= buf.getASN1Part();
+      if (aTot.asn1Type!=com.jcraft.jsch.ASN1.SEQUENCE)
         return false;
 
-      index++;  // 0xa1
+      com.jcraft.jsch.ASN1 aVer= aTot.getASN1Part();
+      if (aVer.asn1Type!=com.jcraft.jsch.ASN1.INTEGER || aVer.getLength()!=1 || aVer.peekByte()!=0x01)
+        return false;
 
-      length=plain[index++]&0xff;
-      if((length&0x80)!=0){
-        int foo=length&0x7f; length=0;
-        while(foo-->0){ length=(length<<8)+(plain[index++]&0xff); }
-      }
+      com.jcraft.jsch.ASN1 aPriv= aTot.getASN1Part();
+      if(aPriv.asn1Type!=com.jcraft.jsch.ASN1.OCTET_STRING)
+        return false;
+      if(aPriv.peekByte()==0x00)
+        aPriv.getByte();
+      prv_array= aPriv.peekContent();
+      variant= findVariantByPrvBytes(prv_array.length);
 
-      byte[] Q_array=new byte[length];
-      System.arraycopy(plain, index, Q_array, 0, length);
-      index+=length;
+      com.jcraft.jsch.ASN1 aPar1=aTot.getASN1Part();
+      if(aPar1.asn1Type!=com.jcraft.jsch.ASN1.PARAM_0)
+        return false;
+      com.jcraft.jsch.ASN1 aPrime=aPar1.getASN1Part();
+      if(!aPrime.equals(com.jcraft.jsch.ASN1.OBJECT, variant.oid))
+        return false;
 
-      byte[][] tmp = fromPoint(Q_array);
+      com.jcraft.jsch.ASN1 aPar2=aTot.getASN1Part();
+      if(aPar2.asn1Type!=com.jcraft.jsch.ASN1.PARAM_1)
+        return false;
+      com.jcraft.jsch.ASN1 aPub=aPar2.getASN1Part();
+      if(aPub.asn1Type!=com.jcraft.jsch.ASN1.BIT_STRING)
+        return false;
+
+      byte[][] tmp=fromPoint(aPub.peekContent());
       r_array = tmp[0];
       s_array = tmp[1];
     }
@@ -546,7 +510,7 @@ public class KeyPairECDSA extends KeyPair{
     System.arraycopy(r_array, 0, tmp[2], 1, r_array.length);
     System.arraycopy(s_array, 0, tmp[2], 1+r_array.length, s_array.length);
 
-    return Buffer.fromBytes(tmp).buffer;
+    return Buffer.fromBytes(tmp).peekContent();
   }
 
   byte[] getKeyTypeName(){
@@ -574,7 +538,7 @@ public class KeyPairECDSA extends KeyPair{
       byte[][] tmp = new byte[2][];
       tmp[0] = variant.bMethodName;
       tmp[1] = sig;
-      return Buffer.fromBytes(tmp).buffer;
+      return Buffer.fromBytes(tmp).peekContent();
     }
     catch(Exception e){
       //System.err.println("e "+e);
@@ -647,16 +611,32 @@ public class KeyPairECDSA extends KeyPair{
     return tmp;
   }
 
+  static byte[][] fromPoint(byte[] point, int keySize) {
+    return fromPoint(new Buffer(point, true), keySize);
+  }
+
   static byte[][] fromPoint(byte[] point) {
-    int i = 0;
-    while(point[i]!=4) i++;
-    i++;
+    return fromPoint(new Buffer(point, true), 0);
+  }
+
+  static byte[][] fromPoint(Buffer b, int keySize) {
+    int publen= keySize>0? ((keySize+7)/8)*2: 0;
+    while(b.index-b.s>publen+1 && b.buffer[b.s]==0x00)
+      ++b.s;
+    if(b.buffer[b.s]!=0x04) return null;
+    ++b.s;
+    if(publen>0){
+      if(b.index-b.s<publen) return null;
+    } else {
+      publen=b.index-b.s;
+      if(publen%2==1 || publen>64) return null;
+    }
     byte[][] tmp = new byte[2][];
-    byte[] r_array = new byte[(point.length-i)/2];
-    byte[] s_array = new byte[(point.length-i)/2];
-    // point[0] == 0x04 == POINT_CONVERSION_UNCOMPRESSED
-    System.arraycopy(point, i, r_array, 0, r_array.length);
-    System.arraycopy(point, i+r_array.length, s_array, 0, s_array.length);
+    byte[] r_array = new byte[publen/2];
+    byte[] s_array = new byte[publen/2];
+    System.arraycopy(b.buffer, b.s, r_array, 0, publen/2);
+    System.arraycopy(b.buffer, b.s+publen/2, s_array, 0, publen/2);
+    b.s+=publen;
     tmp[0] = r_array;
     tmp[1] = s_array;
 

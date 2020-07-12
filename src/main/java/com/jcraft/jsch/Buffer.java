@@ -66,6 +66,12 @@ public class Buffer{
     this.index=from.index;
   }
 
+  public Buffer(Buffer from, int offs, int len){
+    this.buffer=from.buffer;
+    s=from.s+offs;
+    index=s+len;
+  }
+
   public void putByte(byte foo){
     buffer[index++]=foo;
   }
@@ -170,10 +176,23 @@ public class Buffer{
   public void getByte(byte[] foo) {
     getByte(foo, 0, foo.length);
   }
+
   void getByte(byte[] foo, int start, int len) {
-    System.arraycopy(buffer, s, foo, start, len); 
+    System.arraycopy(buffer, s, foo, start, len);
     s+=len;
   }
+
+  byte[] peekContent(){
+    return peekContent(0,index-s);
+  }
+
+  byte[] peekContent(int offs, int len){
+    if(s+offs==0 && s+offs+len==buffer.length) return buffer;
+    byte bret[]= new byte[len];
+    System.arraycopy(buffer, s+offs, bret, 0, len);
+    return bret;
+  }
+
   /**
    * Increment 's' (the read-position) with the specified 'len' bytes.
    * Expect troubles if len<0 or s+len>index or s+len>buffer.length
@@ -381,6 +400,30 @@ public class Buffer{
     return getFixlenBytes(lengthlen);
   }
 
+/** get the head of an ASN1-part
+ *  'head' means 'type' and 'length'
+ *  return  0: success
+ *  return  1: success, 'length' is undefined (ASN1 0x80)
+ *  return -1: failure
+ */
+  int getASN1PartHead(int rettype[], int retlen[]) {
+    rettype[0]= 0;
+    retlen[0]= 0;
+/* sanity check */
+    if(s<0 || s>index || index>buffer.length) return -1;
+/* it has to have at least two bytes */
+    if (s+1>=index) return -1;
+    int byte1= getByte();
+    rettype[0]= byte1;
+
+    int rc= getVarlen(retlen);
+    if (rc!=0)
+      return rc;
+    if (retlen[0]+s>index)
+      return -1;
+    return 0;
+  }
+
 /** get an ASN1-variable-length-data
  *  return  0: success
  *  return  1: success, 'length' is undefined (ASN1 0x80)
@@ -412,12 +455,12 @@ public class Buffer{
   public ASN1 getASN1Part() {
     int[] asn1type= {0};
     int[] partlen= {0};
-    byte[][] bpart= {null};
-    int rc= getVarlenPart(asn1type, partlen, bpart);
-    if(rc==0)
-      return new ASN1(asn1type[0], bpart[0]);
-    else
+    int rc= getASN1PartHead(asn1type, partlen);
+    if(rc!=0)
       return null;
+    ASN1 a= new ASN1(asn1type[0], new Buffer(this, 0, partlen[0]));
+    s+=partlen[0];
+    return a;
   }
 
   public static ASN1 getASN1Part(byte[] bytesFrom) {
