@@ -573,7 +573,8 @@ public abstract class KeyPair{
       return load(jsch, prvkey, pubkey);
     }
     finally {
-      Util.bzero(prvkey);
+      if(prvkey!=null)
+        Util.bzero(prvkey);
     }
   }
 
