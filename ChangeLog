@@ -9,6 +9,7 @@ Changes since version 0.1.55:
 - Multiple *.java files: fix Java1.5 warnings (generics)
 - doc: new directory
 - ASN1.java: ASN1 is subtype of Buffer; later, it might replace KeyPair.ASN1
+- OID.java: to collects OjectsID's
 
 Changes since version 0.1.54:
 - bugfix: fixed vulnerabilities in examples;
