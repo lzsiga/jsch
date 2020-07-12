@@ -425,6 +425,22 @@ public class Buffer{
     return buf.getASN1Part();
   }
 
+  public boolean equals(byte[] pBytes) {
+    int len=index-s;
+    int pLen= pBytes==null? 0: pBytes.length;
+    if(len!=pLen) return false;
+    else if(pLen==0) return true;
+    return Util.equals(buffer, s, pBytes, 0, len);
+  }
+
+  public boolean equals(Buffer pBuffer) {
+    int len=index-s;
+    int pLen=pBuffer.index-pBuffer.s;
+    if(len!=pLen) return false;
+    else if(len==0) return true;
+    return Util.equals(buffer, s, pBuffer.buffer, pBuffer.s, len);
+  }
+
 /*
   static String[] chars={
     "0","1","2","3","4","5","6","7","8","9", "a","b","c","d","e","f"

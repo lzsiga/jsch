@@ -523,4 +523,15 @@ public class Util{
         fis.close();
     }
   }
+
+  static boolean equals(byte[] b1, int start1, byte[] b2, int start2, int len){
+    if (len<=0)
+      return true;
+    if (start1==0 && start2==0 && b1.length==len && b2.length==len)
+      return java.util.Arrays.equals(b1,b2);
+    for(int i=0; i<len; ++i){
+      if(b1[start1+i]!=b2[start2+i]) return false;
+    }
+    return true;
+  }
 }

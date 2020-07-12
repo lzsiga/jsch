@@ -351,11 +351,18 @@ public class KeyPairECDSA extends KeyPair{
 
     com.jcraft.jsch.ASN1 aId= aTotal.getASN1Part();
     if (aId==null || aId.asn1Type!=com.jcraft.jsch.ASN1.SEQUENCE) return false;
-    com.jcraft.jsch.ASN1 aOid1= aTotal.getASN1Part();
-    if (aOid1==null || aOid1.asn1Type!=com.jcraft.jsch.ASN1.OBJECT) return false;
-    com.jcraft.jsch.ASN1 aOid2= aTotal.getASN1Part();
-    if (aOid2==null || aOid2.asn1Type!=com.jcraft.jsch.ASN1.OBJECT) return false;
 
+    com.jcraft.jsch.ASN1 aOid1= aTotal.getASN1Part();
+    if(aOid1==null || !aOid1.equals(com.jcraft.jsch.ASN1.OBJECT, OID.OID_ecPublicKey))
+      return false;
+
+    com.jcraft.jsch.ASN1 aOid2= aTotal.getASN1Part();
+    if (aOid2==null || aOid2.asn1Type!=com.jcraft.jsch.ASN1.OBJECT)
+      return false;
+    variant= findVariantByOid(aOid2.buffer);
+    if(variant==null){
+      return false;
+    }
     return false;
   }
 

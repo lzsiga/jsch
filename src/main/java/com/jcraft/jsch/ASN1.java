@@ -26,18 +26,22 @@ public class ASN1 extends Buffer {
 
   int asn1Type;
 
-  public ASN1 (int pAsn1Type, Buffer pBuffer) {
+  public ASN1(int pAsn1Type, Buffer pBuffer){
     super(pBuffer);
     asn1Type= pAsn1Type;
   }
 
-  public ASN1 (int pAsn1Type, byte[] buf) {
+  public ASN1(int pAsn1Type, byte[] buf){
     super(buf, true);
     asn1Type= pAsn1Type;
   }
 
-  public ASN1 (int pAsn1Type, int capacity) {
+  public ASN1(int pAsn1Type, int capacity){
     super(capacity);
     asn1Type= pAsn1Type;
+  }
+
+  public boolean equals(int pAsn1Type, byte[] pBytes){
+    return asn1Type==pAsn1Type && equals(pBytes);
   }
 }
