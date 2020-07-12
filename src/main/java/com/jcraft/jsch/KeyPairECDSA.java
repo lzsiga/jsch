@@ -49,9 +49,9 @@ public class KeyPairECDSA extends KeyPair{
   }
 
   static final ECDSA_Variant variants[] = {
-    new ECDSA_Variant("nistp256", 256, new byte[] {0x06, 0x08, 0x2a, (byte)0x86, 0x48, (byte)0xce, 0x3d, 0x03, 0x01, 0x07}),
-    new ECDSA_Variant("nistp384", 384, new byte[] {0x06, 0x05, 0x2b, (byte)0x81, 0x04, 0x00, 0x22}),
-    new ECDSA_Variant("nistp521", 521, new byte[] {0x06, 0x05, 0x2b, (byte)0x81, 0x04, 0x00, 0x23})
+    new ECDSA_Variant("nistp256", 256, OID.OID_nistp256),
+    new ECDSA_Variant("nistp384", 384, OID.OID_nistp384),
+    new ECDSA_Variant("nistp521", 521, OID.OID_nistp521)
   };
 
   private static ECDSA_Variant findVariantByMethod(byte[] method) {
@@ -446,8 +446,11 @@ public class KeyPairECDSA extends KeyPair{
       byte[] oid_array=new byte[length];
       System.arraycopy(plain, index, oid_array, 0, length);
       index+=length;
+      com.jcraft.jsch.ASN1 oidPrime=Buffer.getASN1Part(oid_array);
 
-      variant= findVariantByOid(oid_array);
+      if (oidPrime.asn1Type!=com.jcraft.jsch.ASN1.OBJECT)
+        return false;
+      variant= findVariantByOid(oidPrime.buffer);
       if (variant==null)
         return false;
 
