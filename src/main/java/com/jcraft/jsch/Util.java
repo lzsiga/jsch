@@ -329,6 +329,7 @@ public class Util{
       return "???";
     }
   }
+
   static boolean array_equals(byte[] foo, byte bar[]){
     int i=foo.length;
     if(i!=bar.length) return false;
@@ -336,6 +337,18 @@ public class Util{
     //try{while(true){i--; if(foo[i]!=bar[i])return false;}}catch(Exception e){}
     return true;
   }
+
+  static boolean array_equals(byte[] b1, int start1, byte[] b2, int start2, int len){
+    if (len<=0)
+      return true;
+    if (start1==0 && start2==0 && b1.length==len && b2.length==len)
+      return java.util.Arrays.equals(b1,b2);
+    for(int i=0; i<len; ++i){
+      if(b1[start1+i]!=b2[start2+i]) return false;
+    }
+    return true;
+  }
+
   static Socket createSocket(String host, int port, int timeout) throws JSchException{
     Socket socket=null;
     if(timeout==0){
@@ -522,16 +535,5 @@ public class Util{
       if(fis!=null)
         fis.close();
     }
-  }
-
-  static boolean equals(byte[] b1, int start1, byte[] b2, int start2, int len){
-    if (len<=0)
-      return true;
-    if (start1==0 && start2==0 && b1.length==len && b2.length==len)
-      return java.util.Arrays.equals(b1,b2);
-    for(int i=0; i<len; ++i){
-      if(b1[start1+i]!=b2[start2+i]) return false;
-    }
-    return true;
   }
 }
