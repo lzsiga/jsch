@@ -27,7 +27,7 @@ public class ASN1 extends Buffer {
   int asn1Type;
 
   public ASN1 (int pAsn1Type, Buffer pBuffer) {
-    super(pBuffer.buffer, true);
+    super(pBuffer);
     asn1Type= pAsn1Type;
   }
 

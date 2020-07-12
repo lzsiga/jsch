@@ -56,6 +56,16 @@ public class Buffer{
     s=0;
   }
   public Buffer(){ this(1024*10*2); }
+
+  /**
+   * copy constructor: it's 'shallow copy'
+   */
+  public Buffer(Buffer from){
+    this.buffer=from.buffer;
+    this.s=from.s;
+    this.index=from.index;
+  }
+
   public void putByte(byte foo){
     buffer[index++]=foo;
   }
