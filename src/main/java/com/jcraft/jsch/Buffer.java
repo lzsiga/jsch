@@ -412,12 +412,17 @@ public class Buffer{
   public ASN1 getASN1Part() {
     int[] asn1type= {0};
     int[] partlen= {0};
-    byte[][] bpart= null;
+    byte[][] bpart= {null};
     int rc= getVarlenPart(asn1type, partlen, bpart);
     if(rc==0)
       return new ASN1(asn1type[0], bpart[0]);
     else
       return null;
+  }
+
+  public static ASN1 getASN1Part(byte[] bytesFrom) {
+    Buffer buf= new Buffer(bytesFrom, true);
+    return buf.getASN1Part();
   }
 
 /*
