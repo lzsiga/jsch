@@ -536,15 +536,15 @@ public abstract class KeyPair{
     return !encrypted;
   }
 
-  public static KeyPair load(JSch jsch, String prvkey) throws JSchException{
-    String pubkey=prvkey+".pub";
-    if(!new File(pubkey).exists()){
-      pubkey=null;
+  public static KeyPair load(JSch jsch, String prvfile) throws JSchException{
+    String pubfile=prvfile+".pub";
+    if(!new File(pubfile).exists()){
+      pubfile=null;
     }
-    return load(jsch, prvkey, pubkey);
+    return load(jsch, prvfile, pubfile);
   }
-  public static KeyPair load(JSch jsch, String prvfile, String pubfile) throws JSchException{
 
+  public static KeyPair load(JSch jsch, String prvfile, String pubfile) throws JSchException{
     byte[] prvkey=null;
     byte[] pubkey=null;
 
@@ -564,7 +564,7 @@ public abstract class KeyPair{
       pubkey = Util.fromFile(_pubfile);
     }
     catch(IOException e){
-      if(pubfile!=null){  
+      if(pubfile!=null){
         throw new JSchException(e.toString(), (Throwable)e);
       }
     }
@@ -591,7 +591,9 @@ public abstract class KeyPair{
     String publicKeyComment = "";
     Cipher cipher=null;
 
-    // prvkey from "ssh-add" command on the remote.
+    // prvkey from "ssh-add" command on the remote
+    // i.e. it begins string, prefixed with length (00000007 or 00000013)
+    // "ssh-rsa", "ssh-dsa", "ecdsa-sha2-nistpNNN"
     if(pubkey==null &&
        prvkey!=null && 
        (prvkey.length>11 &&

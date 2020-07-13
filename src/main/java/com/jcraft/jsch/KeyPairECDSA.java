@@ -380,7 +380,7 @@ public class KeyPairECDSA extends KeyPair{
      if(byte1==0x00) return parsePublicKeySSH2(buf);
      else if(byte1==(int)'e')  return parsePublicKeySingleLine(buf);
      else if(byte1==(int)0x30) return parsePublicKeyPkcs8(buf);
-     return false; /* it could be 0x30 (ASN1.SEQUENCE) -- not supported yet */
+     return false;
    }
 
   /**
