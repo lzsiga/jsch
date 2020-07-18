@@ -8,7 +8,7 @@ Licence: BSD
 
 Java version: 1.5 or newer
 
-Versioning: I think I'll start with **0.1.55a**, not to interfere with other forks
+Versioning: I think I'll start with **0.1.55a1**, not to interfere with other forks
 
 Dependency: jcraft's jzlib (latest version is 1.1.3)
 - http://www.jcraft.com/jzlib/

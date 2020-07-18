@@ -12,7 +12,7 @@ Conversion between 'byte[]' and 'String'
 
     When there's no 'encoding' parameter, UTF-8 is used (and if that fails, the default encoding)
 
-    In version 0.1.55a these methods became 'public': they might be useful as they are easier
+    In version 0.1.55a1 these methods became 'public': they might be useful as they are easier
     to use than 'new String' and 'String.getBytes': they handle null value, and don't throw exceptions
 
     Note: if we have binary data that is supposed to be ASCII, but actually it can contain

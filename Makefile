@@ -13,7 +13,7 @@ MINVER := 1.5
 SRCROOT  := src/main/java
 JFLAGS   := ${PRESET_JFLAGS} -source ${MINVER} -target ${MINVER} -encoding UTF-8 -Xlint:deprecation -Xlint:unchecked
 JFLAGSCP := ${JFLAGS} -classpath ${CP}
-VER      := 0.1.55a
+VER      := 0.1.55a1
 FNAME    := jsch-${VER}
 
 SOURCES := $(shell cd ${SRCROOT} && find . -name '*.java')
