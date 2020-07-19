@@ -349,7 +349,7 @@ public class KeyPairECDSA extends KeyPair{
     com.jcraft.jsch.ASN1 aOid2= aTotal.getASN1Part();
     if (aOid2==null || aOid2.asn1Type!=com.jcraft.jsch.ASN1.OBJECT)
       return false;
-    variant= findVariantByOid(aOid2.peekContent());
+    variant= findVariantByOid(aOid2.getContent());
     if(variant==null){
       return false;
     }
@@ -420,7 +420,7 @@ public class KeyPairECDSA extends KeyPair{
         return false;
       if(aPriv.peekByte()==0x00)
         aPriv.getByte();
-      prv_array= aPriv.peekContent();
+      prv_array= aPriv.getContent();
       variant= findVariantByPrvBytes(prv_array.length);
 
       com.jcraft.jsch.ASN1 aPar1=aTot.getASN1Part();
@@ -437,7 +437,7 @@ public class KeyPairECDSA extends KeyPair{
       if(aPub.asn1Type!=com.jcraft.jsch.ASN1.BIT_STRING)
         return false;
 
-      byte[][] tmp=fromPoint(aPub.peekContent());
+      byte[][] tmp=fromPoint(aPub.getContent());
       r_array = tmp[0];
       s_array = tmp[1];
     }
@@ -510,7 +510,7 @@ public class KeyPairECDSA extends KeyPair{
     System.arraycopy(r_array, 0, tmp[2], 1, r_array.length);
     System.arraycopy(s_array, 0, tmp[2], 1+r_array.length, s_array.length);
 
-    return Buffer.fromBytes(tmp).peekContent();
+    return Buffer.fromBytes(tmp).getContent();
   }
 
   byte[] getKeyTypeName(){
@@ -538,7 +538,7 @@ public class KeyPairECDSA extends KeyPair{
       byte[][] tmp = new byte[2][];
       tmp[0] = variant.bMethodName;
       tmp[1] = sig;
-      return Buffer.fromBytes(tmp).peekContent();
+      return Buffer.fromBytes(tmp).getContent();
     }
     catch(Exception e){
       //System.err.println("e "+e);
