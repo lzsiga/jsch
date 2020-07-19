@@ -55,6 +55,19 @@ public class Buffer{
     index=fSkip? this.buffer.length: 0;
     s=0;
   }
+  public Buffer(byte[] buffer, int start, int length){
+    if(start<0) start=0;
+    if(length<0) length=0;
+    if(start>buffer.length){
+      start=buffer.length;
+      length=0;
+    }else if(start+length>buffer.length){
+      length=buffer.length-start;
+    }
+    this.buffer=buffer;
+    this.s=start;
+    this.index=start+length;
+  }
   public Buffer(){ this(1024*10*2); }
 
   /**
@@ -182,11 +195,11 @@ public class Buffer{
     s+=len;
   }
 
-  byte[] peekContent(){
-    return peekContent(0,index-s);
+  byte[] getContent(){
+    return getContent(0,index-s);
   }
 
-  byte[] peekContent(int offs, int len){
+  byte[] getContent(int offs, int len){
     if(s+offs==0 && s+offs+len==buffer.length) return buffer;
     byte bret[]= new byte[len];
     System.arraycopy(buffer, s+offs, bret, 0, len);
