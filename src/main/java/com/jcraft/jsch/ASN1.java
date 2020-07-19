@@ -30,6 +30,12 @@ public class ASN1 extends Buffer {
 
   int asn1Type;
 
+  public static class ASN1Exception extends Exception{
+    public ASN1Exception(String s){
+      super(s);
+    }
+  }
+
   public ASN1(int pAsn1Type, Buffer pBuffer){
     super(pBuffer);
     asn1Type= pAsn1Type;
@@ -43,6 +49,33 @@ public class ASN1 extends Buffer {
   public ASN1(int pAsn1Type, int capacity){
     super(capacity);
     asn1Type= pAsn1Type;
+  }
+
+/** The following constructors fetch 'type' and 'length' themself
+ */
+  public ASN1(byte[] b) throws ASN1Exception{
+    constructorHelper(b, 0, b.length);
+  }
+
+  public ASN1(byte[] b, int start, int length) throws ASN1Exception{
+    constructorHelper(b, start, length);
+  }
+
+  public ASN1(Buffer b) throws ASN1Exception{
+    constructorHelper(b.buffer, b.s, b.index-b.s);
+  }
+
+  private void constructorHelper(byte[] b, int start, int length)
+  throws ASN1Exception{
+    if (start<0 || length<0 || start+length>b.length){
+      throw new ASN1Exception(String.format(
+        "jcraft.jsch.ASN1: Invalid parameters for constructor"+
+        " (buffer.length=%d start=%d length=%d)",
+        b.length, start, index));
+    }
+    this.buffer=b;
+    this.s=start;
+    this.index=start+length;
   }
 
   public boolean equals(int pAsn1Type, byte[] pBytes){
