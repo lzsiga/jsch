@@ -82,7 +82,7 @@ public class ASN1 extends Buffer {
     this.index=this.s+partlen[0];
   }
 
-  ASN1[] getContents() throws ASN1Exception {
+  public ASN1[] getContents() throws ASN1Exception {
     java.util.List<ASN1> work= new java.util.ArrayList<ASN1>();
 
     while(s<index){
