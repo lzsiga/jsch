@@ -30,12 +30,6 @@ public class ASN1 extends Buffer {
 
   int asn1Type;
 
-  public static class ASN1Exception extends Exception{
-    public ASN1Exception(String s){
-      super(s);
-    }
-  }
-
   public ASN1(int pAsn1Type, Buffer pBuffer){
     super(pBuffer);
     asn1Type= pAsn1Type;
@@ -76,6 +70,33 @@ public class ASN1 extends Buffer {
     this.buffer=b;
     this.s=start;
     this.index=start+length;
+
+    int[] asn1type= {0};
+    int[] partlen= {0};
+    int rc= this.getASN1PartHead(asn1type, partlen);
+    if(rc!=0){
+      throw new ASN1Exception(
+        "jcraft.jsch.ASN1: Couldn't fetch ASN1-type or length from byte-array");
+    }
+    this.asn1Type=asn1type[0];
+    this.index=this.s+partlen[0];
+  }
+
+  ASN1[] getContents() throws ASN1Exception {
+    java.util.List<ASN1> work= new java.util.ArrayList<ASN1>();
+
+    while(s<index){
+      ASN1 atmp= getASN1Part();
+      if(atmp==null){
+        throw new ASN1Exception(
+          "jcraft.jsch.ASN1.getContent: Error parsing ASN1-element for child-elements");
+      }
+      work.add(atmp);
+    }
+
+    ASN1[] ret= new ASN1[work.size()];
+    work.toArray(ret);
+    return ret;
   }
 
   public boolean equals(int pAsn1Type, byte[] pBytes){
