@@ -196,10 +196,16 @@ public class Buffer{
   }
 
   byte[] getContent(){
-    return getContent(0,index-s);
+    byte[] retval=peekContent();
+    s=index;
+    return retval;
   }
 
-  byte[] getContent(int offs, int len){
+  byte[] peekContent(){
+    return peekContent(0,index-s);
+  }
+
+  byte[] peekContent(int offs, int len){
     if(s+offs==0 && s+offs+len==buffer.length) return buffer;
     byte bret[]= new byte[len];
     System.arraycopy(buffer, s+offs, bret, 0, len);
