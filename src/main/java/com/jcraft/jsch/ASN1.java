@@ -82,6 +82,11 @@ public class ASN1 extends Buffer {
     this.index=this.s+partlen[0];
   }
 
+  public ASN1[] peekContents() throws ASN1Exception {
+    ASN1 atmp=new ASN1(this);
+    return atmp.getContents();
+  }
+
   public ASN1[] getContents() throws ASN1Exception {
     java.util.List<ASN1> work= new java.util.ArrayList<ASN1>();
 
