@@ -45,17 +45,21 @@ public class ASN1 extends Buffer {
     asn1Type= pAsn1Type;
   }
 
-/** The following constructors fetch 'type' and 'length' themself
+/** Unlike the previous ones, the following constructors
+ *  fetch 'type' and 'length' from the byte-array themself
  */
   public ASN1(byte[] b) throws ASN1Exception{
+    super(b);
     constructorHelper(b, 0, b.length);
   }
 
   public ASN1(byte[] b, int start, int length) throws ASN1Exception{
+    super(b);
     constructorHelper(b, start, length);
   }
 
   public ASN1(Buffer b) throws ASN1Exception{
+    super(b);
     constructorHelper(b.buffer, b.s, b.index-b.s);
   }
 
