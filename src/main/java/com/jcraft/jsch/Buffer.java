@@ -347,7 +347,7 @@ public class Buffer{
     if (s+lengthlen>index) return null;
     long len= 0;
     for (int j=0; j<lengthlen; ++j) {
-      len= (len<<8) + buffer[s+j];
+      len= (len<<8) + (buffer[s+j]&0xff);
       if (s+lengthlen+len>index) return null;
     }
     s += lengthlen;
@@ -391,7 +391,7 @@ public class Buffer{
       long len=0;
       boolean fail=false;
       for (int j=0; !fail && j<lengthlen; ++j){
-        len= (len<<8) + buffer[s+j];
+        len= (len<<8) + (buffer[s+j]&0xff);
         if(len>Integer.MAX_VALUE)
           fail= true;
       }
