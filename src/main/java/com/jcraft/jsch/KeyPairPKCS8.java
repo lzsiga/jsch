@@ -184,6 +184,10 @@ public class KeyPairPKCS8 extends KeyPair {
           kpair = _kpair;
         }
       }
+      else if(Util.array_equals(privateKeyAlgorithmID, OID.ecPublicKey)){
+        System.out.printf("KeyPairPKCS8.parse: ECDSA not implemented yes");
+        kpair = null;
+      }
     }
     catch(ASN1Exception e){
       return false;
