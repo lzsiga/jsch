@@ -49,9 +49,9 @@ public class KeyPairECDSA extends KeyPair{
   }
 
   static final ECDSA_Variant variants[] = {
-    new ECDSA_Variant("nistp256", 256, OID.OID_nistp256),
-    new ECDSA_Variant("nistp384", 384, OID.OID_nistp384),
-    new ECDSA_Variant("nistp521", 521, OID.OID_nistp521)
+    new ECDSA_Variant("nistp256", 256, OID.nistp256),
+    new ECDSA_Variant("nistp384", 384, OID.nistp384),
+    new ECDSA_Variant("nistp521", 521, OID.nistp521)
   };
 
   private static ECDSA_Variant findVariantByMethod(byte[] method) {
@@ -343,7 +343,7 @@ public class KeyPairECDSA extends KeyPair{
     if (aId==null || aId.asn1Type!=ASN1.SEQUENCE) return false;
 
     ASN1 aOid1= aTotal.getASN1Part();
-    if(aOid1==null || !aOid1.equals(ASN1.OBJECT, OID.OID_ecPublicKey))
+    if(aOid1==null || !aOid1.equals(ASN1.OBJECT, OID.ecPublicKey))
       return false;
 
     ASN1 aOid2= aTotal.getASN1Part();
