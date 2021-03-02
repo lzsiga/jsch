@@ -133,7 +133,7 @@ System.err.println("");
   public void run(){
 
     try{ 
-      socket=Util.createSocket(host, port, TIMEOUT);
+      socket=Util.createSocket(host, port, TIMEOUT, true);
       socket.setTcpNoDelay(true);
       io=new IO();
       io.setInputStream(socket.getInputStream());

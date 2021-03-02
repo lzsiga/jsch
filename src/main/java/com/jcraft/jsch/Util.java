@@ -29,6 +29,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -347,6 +348,29 @@ public class Util{
       if(b1[start1+i]!=b2[start2+i]) return false;
     }
     return true;
+  }
+
+  static Socket createFactorySocket(SocketFactory factory, String host, int port, boolean keepAlive)
+  throws IOException, UnknownHostException{
+    Socket s= factory.createSocket(host, port);
+    s.setKeepAlive(keepAlive);
+    return s;
+  }
+
+  static void setKeepAlive(Socket s, boolean keepAlive) throws JSchException{
+    try {
+      s.setKeepAlive (keepAlive);
+    } catch (Exception e) {
+      throw new JSchException (
+        String.format ("com.jcraft.jsch.Util: setKeepAlive error on socket=%s", s, e),
+        e);
+    }
+  }
+
+  static Socket createSocket(String host, int port, int timeout, boolean keepAlive) throws JSchException{
+    Socket s= createSocket(host, port, timeout);
+    setKeepAlive(s,keepAlive);
+    return s;
   }
 
   static Socket createSocket(String host, int port, int timeout) throws JSchException{

@@ -74,9 +74,9 @@ public class ChannelForwardedTCPIP extends Channel{
       }
       else{
         ConfigLHost _config = (ConfigLHost)config;
-        socket=(_config.factory==null) ? 
-           Util.createSocket(_config.target, _config.lport, TIMEOUT) : 
-          _config.factory.createSocket(_config.target, _config.lport);
+        socket=(_config.factory==null) ?
+           Util.createSocket(_config.target, _config.lport, TIMEOUT, true) : 
+           Util.createFactorySocket(_config.factory, _config.target, _config.lport, true);
         socket.setTcpNoDelay(true);
         io.setInputStream(socket.getInputStream());
         io.setOutputStream(socket.getOutputStream());

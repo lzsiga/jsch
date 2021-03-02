@@ -68,12 +68,12 @@ public class ProxyHTTP implements Proxy{
   public void connect(SocketFactory socket_factory, String host, int port, int timeout) throws JSchException{
     try{
       if(socket_factory==null){
-        socket=Util.createSocket(proxy_host, proxy_port, timeout);    
+        socket=Util.createSocket(proxy_host, proxy_port, timeout, true);
         in=socket.getInputStream();
         out=socket.getOutputStream();
       }
       else{
-        socket=socket_factory.createSocket(proxy_host, proxy_port);
+        socket=Util.createFactorySocket(socket_factory, proxy_host, proxy_port, true);
         in=socket_factory.getInputStream(socket);
         out=socket_factory.getOutputStream(socket);
       }

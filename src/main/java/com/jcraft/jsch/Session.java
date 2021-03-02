@@ -212,12 +212,12 @@ public class Session implements Runnable{
         InputStream in;
         OutputStream out;
 	if(socket_factory==null){
-          socket=Util.createSocket(host, port, connectTimeout);
+          socket=Util.createSocket(host, port, connectTimeout, true);
 	  in=socket.getInputStream();
 	  out=socket.getOutputStream();
 	}
 	else{
-          socket=socket_factory.createSocket(host, port);
+	  socket=Util.createFactorySocket(socket_factory, host, port, true);
 	  in=socket_factory.getInputStream(socket);
 	  out=socket_factory.getOutputStream(socket);
 	}

@@ -1,6 +1,9 @@
 ChangeLog of JSch
 ====================================================================
-Last modified: Fri Jul 11 2020
+Last modified: Tue 2 Mar 2021
+
+Changes since version 0.1.55a1:
+- forced setKeepAlive whenever I could
 
 Changes since version 0.1.55:
 - README.md: new file
